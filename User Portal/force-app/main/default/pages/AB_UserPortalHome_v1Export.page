@@ -1,0 +1,34 @@
+<apex:page showHeader="false" standardStylesheets="true" sidebar="false" controller="AB_UserPortalHomeController_v1" tabStyle="Contact" showheader="true" contentType="application/vnd.ms-excel#AB_UserPortalHome_v1Export{!TODAY()}.xls" cache="true">
+    <apex:form >
+        <apex:outputPanel id="myPanel">
+            <table>
+            <tr>
+                <th>{!$ObjectType.User.Fields.Name.label}</th>              
+                <th>{!$ObjectType.User.Fields.USERNAME.label}</th>
+                <th>{!$ObjectType.User.Fields.Email.label}</th>
+                <th>{!$ObjectType.User.Fields.Title.label}</th>  
+                <th>{!$ObjectType.User.Fields.isActive.label}</th>              
+                <th>{!$ObjectType.User.Fields.gsc_mc__Sync_to_GoSpotCheck__c.label}</th> 
+                <th>{!$ObjectType.User.Fields.SRI_Access__c.label}</th>
+                <th>{!$ObjectType.User.Fields.RouteKey__c.label}</th>  
+                <th>{!$ObjectType.User.Fields.LastLoginDate.label}</th>
+                <th>{!$ObjectType.User.Fields.Employee_Number_US__c.label}</th>
+            </tr>
+            <apex:repeat value="{!MyUsersWrapper}" var="c">
+                <tr>
+                <td>{!c.usr.Name}</td>              
+                <td>{!c.usr.USERNAME}</td>
+                <td>{!c.usr.Email}</td>
+                <td>{!c.usr.Title}</td>  
+                <td>{!c.usr.isActive}</td>              
+                <td>{!c.usr.gsc_mc__Sync_to_GoSpotCheck__c}</td> 
+                <td>{!c.usr.SRI_Access__c}</td>
+                <td>{!c.usr.RouteKey__c}</td>  
+                <td>{!c.usr.LastLoginDate}</td>
+                <td>{!c.usr.Employee_Number_US__c}</td>
+                </tr>               
+            </apex:repeat>
+            </table>
+        </apex:outputPanel>
+    </apex:form>
+</apex:page>

@@ -1,0 +1,191 @@
+<apex:page showHeader="false" standardStylesheets="true" sidebar="false" applyHtmlTag="true" applyBodyTag="false" docType="html-5.0" controller="AB_UserPortalHomeController_v1" tabStyle="Contact" showheader="true" lightningStylesheets="true">
+    <style type="text/css">
+      .pbTitle {
+        white-space: nowrap;
+      }
+    </style>
+
+    <script language="JavaScript">
+        function toggle(source) {
+            checkboxes =  document.getElementsByClassName("cbSelect")
+            for(var i=0, n=checkboxes.length;i<n;i++) {
+                checkboxes[i].checked = source.checked;
+            }
+        }
+    </script>
+    <apex:form >
+        <apex:pageBlock title="{!UserInfoString} {!$Label.UserPortalTitle}">
+            <apex:outputPanel rendered="{!$User.UIThemeDisplayed == 'Theme4d' || $User.UIThemeDisplayed == 'Theme3'}">
+                <b>
+                    <apex:outputText value="{!$Label.UserPortalHelpText}"/>  <a href="mailto:SupportMobility360@anheuser-busch.com">SupportMobility360@anheuser-busch.com</a>
+                </b>
+            </apex:outputPanel>
+            <apex:outputPanel rendered="{!$User.UIThemeDisplayed != 'Theme4d' && $User.UIThemeDisplayed != 'Theme3'}">
+            <h1>
+                <apex:outputText value="{!$Label.UserPortalHelpText}"/>  <a href="mailto:SupportMobility360@anheuser-busch.com">SupportMobility360@anheuser-busch.com</a>
+            </h1>
+            </apex:outputPanel>
+        </apex:pageBlock>  
+        <apex:pageBlock title="Welcome, {!$User.FirstName} {!$User.LastName}">        
+            <apex:pageBlockButtons location="top"> 
+                <apex:commandButton value="New User" action="{!doNewUser}"/>
+                <apex:commandButton value="Remove Users" 
+                            onclick="if(!confirm('Are you sure you want to remove the selected users?')){return false};" action="{!processSelected}" 
+                            reRender="table">
+                </apex:commandButton>
+                <apex:commandButton value="Logout" action="{!doLogout}"/>
+                <!-- Femi onakoya -->
+                <!--<apex:commandButton value="ABIQ App" action="{!doSwitch}"/>-->
+                <apex:commandButton value="Reset Password" action="{!doResetPassword}"
+                     onclick="if(!confirm('Are you sure you want to Reset Password for the selected users?')){return false};"/>
+                <apex:commandButton value="Export" action="/apex/AB_UserPortalHome_v1Export"/>
+            </apex:pageBlockButtons>    
+            <apex:outputPanel id="myButtons">   
+                <apex:panelGrid columns="7">        
+                    <apex:commandButton action="{!Beginning}" title="First" value="<<" disabled="{!disablePrevious}" reRender="table,myButtons"/>     
+                    <apex:commandButton action="{!Previous}" title="Previous" value="<" disabled="{!disablePrevious}" reRender="table,myButtons"/>                
+                    <apex:commandButton action="{!Next}" title="Next" value=">" disabled="{!disableNext}" reRender="table,myButtons"/>        
+                    <apex:commandButton action="{!End}" title="Last" value=">>" disabled="{!disableNext}" reRender="table,myButtons"/>
+                    <apex:outputPanel id="countId">
+                        <apex:outputText >Total Users: {!total_size} | Active Users: {!activeUsers_size}</apex:outputText>  
+                    </apex:outputPanel>
+                    
+                    <apex:inputText html-placeholder="Enter Name" value="{!nameVal}"/> 
+                    <apex:commandButton value="Search" action="{!buildQuery}" rerender="myPanel, countId"/>
+                </apex:panelGrid> 
+            </apex:outputPanel>
+            <apex:outputPanel id="myPanel" style="overflow:scroll;height:{!$Label.UserPortalHeight}px;" layout="block">
+                <apex:pageBlockTable value="{!MyUsersWrapper}" var="c" id="table">
+                    <apex:column >
+                        <apex:facet name="header">
+                            
+                            <input type="checkbox" onClick="toggle(this)" />
+                            
+
+                        </apex:facet>
+                        <apex:inputCheckbox value="{!c.selected}" styleClass="cbSelect"/>
+                    </apex:column>
+                    <apex:column headerValue="Name">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="Name" assignTo="{!SortField}" />
+                           <apex:outputText value="User Name {!IF(SortField=='Name',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                        <apex:outputLink value="/apex/AB_UserPortalContact?id={!c.usr.Id}&pn={!pageOffset}&sf={!sortField}&sd={!sortDirection}">{!c.usr.Name}</apex:outputLink>
+                    </apex:column>                    
+                    <apex:column value="{!c.usr.USERNAME}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="USERNAME" assignTo="{!SortField}" />
+                           <apex:outputText value="Login UserName {!IF(SortField=='USERNAME',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                    </apex:facet>
+                    </apex:column>
+                    <apex:column value="{!c.usr.Email}">
+                    <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="Email" assignTo="{!SortField}" />
+                           <apex:outputText value="Email {!IF(SortField=='Email',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>
+                    <apex:column value="{!c.usr.Title}">
+                    <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="Title" assignTo="{!SortField}" />
+                           <apex:outputText value="Title {!IF(SortField=='Title',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>
+                    <apex:column value="{!c.usr.isActive}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="isActive" assignTo="{!SortField}" />
+                           <apex:outputText value="Active {!IF(SortField=='isActive',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>   
+                    <apex:column value="{!c.usr.gsc_mc__Sync_to_GoSpotCheck__c}" rendered="{!IF(userType=='IND'|| userType =='WOD',true,false)}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="gsc_mc__Sync_to_GoSpotCheck__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'GoSpotCheck'} {!IF(SortField=='gsc_mc__Sync_to_GoSpotCheck__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>  
+                    <!-- LOLA ACCESS-->
+                    <apex:column value="{!c.usr.LOLA_Access__c}" rendered="{!updateLolaAccess}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="LOLA_Access__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'LOLA'} {!IF(SortField=='LOLA_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>                      
+                    <!-- FIN LOLA ACCESS-->
+                    <apex:column value="{!c.usr.SRI_Access__c}" rendered="{!userType=='IND'}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="SRI_Access__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'SRI'} {!IF(SortField=='SRI_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>   
+                    <apex:column value="{!c.usr.WSLRNbrRouteNbr__c}" rendered="{!IF(userType=='IND' || userType=='Telesales' || userType=='WOD',true,false)}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="WSLRNbrRouteNbr__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'Wslr Nbr + Rte Nbr'} {!IF(SortField=='WSLRNbrRouteNbr__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>  
+                    <apex:column value="{!c.usr.LastLoginDate}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="LastLoginDate" assignTo="{!SortField}" />
+                           <apex:outputText value="{!$ObjectType.User.Fields.LastLoginDate.label+''} {!IF(SortField=='LastLoginDate',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>  
+                    <apex:column value="{!c.usr.Employee_Number_US__c}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="Employee_Number_US__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'Mobility Employee ID'} {!IF(SortField=='Employee_Number_US__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>  
+                    <!-- Femi: July19 - Addded below line -->    
+                    <apex:column headerValue="BTC Access" value="{!c.usr.BigTinCan_Access__c}" rendered="{!hasBTCAccess}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="BigTinCan_Access__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'BTC Access'} {!IF(SortField=='BigTinCan_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>
+                    <apex:column headerValue="InContact Access" value="{!c.usr.InContact_Access__c}" rendered="{!userType == 'Telesales'}">
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                                <apex:param name="SortField" value="InContact_Access__c" assignTo="{!SortField}" />
+                                <apex:outputText value="{!'InContact'} {!IF(SortField=='InContact_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                            </apex:commandLink>
+                        </apex:facet>
+                    </apex:column>  
+                    <apex:column headerValue="LiveMessage Access" value="{!c.usr.LiveMessage_Access__c}" rendered="{!userType == 'Telesales'}">
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                                <apex:param name="SortField" value="LiveMessage_Access__c" assignTo="{!SortField}" />
+                                <apex:outputText value="{!'LiveMessage'} {!IF(SortField=='LiveMessage_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                            </apex:commandLink>
+                        </apex:facet>
+                    </apex:column> 
+                    <apex:facet name="footer">Showing Page # {!pageNumber} of {!totalPages}</apex:facet>
+                    <apex:facet name="header">
+                    </apex:facet>
+                </apex:pageBlockTable>
+            </apex:outputPanel>
+        </apex:pageBlock> 
+    </apex:form>
+</apex:page>

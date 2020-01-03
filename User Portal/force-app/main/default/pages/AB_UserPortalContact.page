@@ -1,0 +1,408 @@
+<apex:page controller="AB_UserPortalContactExtension" sidebar="false" lightningStylesheets="true">
+    <!--Merchandiser User Portal-->
+    <apex:form rendered="{!userType=='FSL'}">
+        <apex:pageMessages />
+        <apex:inputhidden value="{!usr.Title}"/>
+        <apex:pageBlock mode="edit" title="User" id="usrDetailPb">
+                <apex:pageBlocksection title="User Details">
+                <!--First Name-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.FirstName.label}"/>
+                    <apex:inputField value="{!usr.FirstName}"/>
+                </apex:pageBlockSectionItem>
+                <!--Wholesaler Picklist-->
+                <apex:pageBlockSectionItem >
+                    <apex:outputlabel value="Wholesaler"/>
+                    <!--<apex:inputField value="{!usr.UserRoleId}" required="true"/>-->
+                    <apex:selectList size="1" value="{!selRoleId}"  tabIndex="50">
+                        <apex:selectOptions value="{!roles}"/>
+                        <apex:actionSupport event="onchange" rerender="usrDetailPb"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionitem> 
+                <!--Last Name-->              
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.LastName.label}"/>
+                    <apex:inputField value="{!usr.LastName}" required="true"/>
+                </apex:pageBlockSectionItem>                    
+                <!--Wholesaler Number-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="Wholesaler Num"/>
+                    <apex:selectList value="{!wholesalerKey}" size="1" tabIndex="70">
+                        <apex:selectOptions value="{!routeOptions}"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>  
+                <!--Email-->                     
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.Email.label}"/>
+                    <apex:inputField value="{!usr.Email}" required="true"/>
+                </apex:pageBlockSectionItem>
+                <!--Active Flag-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.isActive.label}"/>
+                    <apex:inputField value="{!usr.isActive}"/>
+                </apex:pageBlockSectionItem>                
+                <!--Role-->                                           
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.Contact.Fields.Role_Picklist__c.label}"/>
+                    <apex:selectList size="1" value="{!selRolePickVal}"  tabIndex="40">
+                        <apex:selectOptions value="{!roleTypes}"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>             
+                <apex:actionStatus id="pageStatus">
+                <apex:facet name="start">
+                    <apex:outputPanel >
+                        <img src="/img/loading32.gif" width="25" height="25" />
+                        <apex:outputLabel value="Loading..."/>
+                    </apex:outputPanel>            
+                </apex:facet>
+            </apex:actionStatus>
+            </apex:pageBlocksection>
+
+            <apex:pageBlockButtons >
+                <apex:commandButton value="Save" action="{!save}" status="pageStatus" disabled="{!isSaveDisabled}" oncomplete="initiateServiceResource();"/>
+                <apex:commandButton value="Remove User" onclick="confirm('Are you sure you want to remove this user?')" action="{!doRemoveUser}" status="pageStatus" rendered="{!usr.id != null}"/>
+                <apex:commandButton value="Cancel"  action="{!doCancel}" status="pageStatus" immediate="true" html-formnovalidate="true" />
+                <apex:actionFunction name="createServiceResource" status="pageStatus" action="{!createServiceResource}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+
+    <!--Telesales User Portal-->
+    <apex:form rendered="{!userType=='Telesales'}">
+        <apex:pageMessages />
+        <apex:inputhidden value="{!usr.Title}"/>
+        <apex:pageBlock mode="edit" title="User" id="usrDetailPb">
+                <apex:pageBlocksection title="User Details">
+                <!--First Name-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.FirstName.label}"/>
+                    <apex:inputField value="{!usr.FirstName}"/>
+                </apex:pageBlockSectionItem>
+                <!--Wholesaler Picklist-->
+                <apex:pageBlockSectionItem >
+                    <apex:outputlabel value="Wholesaler"/>
+                    <apex:selectList size="1" value="{!selRoleId}"  tabIndex="50">
+                        <apex:selectOptions value="{!roles}"/>
+                        <apex:actionSupport event="onchange" rerender="usrDetailPb"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>                
+                <!--Last Name-->              
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.LastName.label}"/>
+                    <apex:inputField value="{!usr.LastName}" required="true"/>
+                </apex:pageBlockSectionItem>                    
+                <!--Wholesaler Number-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="Wholesaler Num"/>
+                    <apex:selectList value="{!wholesalerKey}" size="1" tabIndex="70">
+                        <apex:selectOptions value="{!routeOptions}"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>  
+                <!--Email-->                     
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.Email.label}"/>
+                    <apex:inputField value="{!usr.Email}" required="true"/>
+                </apex:pageBlockSectionItem>
+                <!--Route Number-->
+                <apex:pageBlockSectionitem>
+                  <apex:outputLabel value="Wslr Nbr + Rte Nbr"/>
+                  <apex:outputPanel layout="inline" style="vertical-align:middle">
+                    <apex:inputHidden value="{!selRouteNum}" id="targetId" />
+                    <apex:inputText size="20" id="targetName" value="{!selRouteNum}"/>
+                    <a href="#" onclick="openLookupPopup('{!$Component.targetName}', '{!$Component.targetId}'); return false"><apex:image style="vertical-align:middle;width:21px; height:21px" value="/img/icon/telescope16.png" /></a>
+                  </apex:outputPanel>
+                </apex:pageBlockSectionitem> 
+                <!--Role-->                                           
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.Contact.Fields.Role_Picklist__c.label}"/>
+                    <apex:selectList size="1" value="{!selRolePickVal}"  tabIndex="40">
+                        <apex:selectOptions value="{!roleTypes}"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>   
+                <!--Active Flag-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.isActive.label}"/>
+                    <apex:inputField value="{!usr.isActive}"/>
+                </apex:pageBlockSectionItem>
+                <!--MOB Emp ID-->  
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="Mobility Employee ID"/>
+                    <apex:inputField value="{!usr.Employee_Number_US__c}"/>
+                </apex:pageBlockSectionItem>  
+                <!--InContact Access Flag-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.InContact_Access__c.label}"/>
+                    <apex:inputField value="{!usr.InContact_Access__c}"/>
+                </apex:pageBlockSectionItem>  
+                <!--Blank Space-->
+                <apex:pageBlockSectionItem>
+                </apex:pageBlockSectionItem>
+                <!--LiveMessage Access Flag-->
+                <apex:pageBlockSectionItem>    
+                <apex:outputlabel value="{!$ObjectType.User.Fields.LiveMessage_Access__c.label}"/>
+                    <apex:inputField value="{!usr.LiveMessage_Access__c}" />
+                </apex:pageBlockSectionItem>
+            </apex:pageBlocksection>
+
+            <apex:pageBlockButtons >
+                <!-- Femi: Added oncomplete action to create service resource,Skill and Territory Memner on Save button-->
+                <apex:commandButton value="Save" action="{!save}" disabled="{!isSaveDisabled}" oncomplete="initiateServiceResource();"/>
+                <apex:commandButton value="Remove User" onclick="confirm('Are you sure you want to remove this user?')" action="{!doRemoveUser}" rendered="{!usr.id != null}"/>
+                <apex:commandButton value="Cancel"  action="{!doCancel}" immediate="true" html-formnovalidate="true" />
+                <apex:actionFunction name="createServiceResource" action="{!createServiceResource}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+
+    <!--WOD User Portal-->
+    <apex:form rendered="{!userType='WOD'}">
+        <apex:pageMessages />
+        <apex:inputhidden value="{!usr.Title}"/>
+        <apex:pageBlock mode="edit" title="User" id="usrDetailPb">
+                <apex:pageBlocksection title="User Details">
+                <!--First Name-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.FirstName.label}"/>
+                    <apex:inputField value="{!usr.FirstName}"/>
+                </apex:pageBlockSectionItem>
+                <!--Wholesaler Picklist-->
+                <apex:pageBlockSectionItem >
+                    <apex:outputlabel value="Wholesaler"/>
+                    <apex:selectList size="1" value="{!selRoleId}"  tabIndex="50">
+                        <apex:selectOptions value="{!roles}"/>
+                        <apex:actionSupport event="onchange" rerender="usrDetailPb"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>                
+                <!--Last Name-->              
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.LastName.label}"/>
+                    <apex:inputField value="{!usr.LastName}" required="true"/>
+                </apex:pageBlockSectionItem>                    
+                <!--Wholesaler Number-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="Wholesaler Num"/>
+                    <apex:selectList value="{!wholesalerKey}" size="1" tabIndex="70">
+                        <apex:selectOptions value="{!routeOptions}"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>  
+                <!--Email-->                     
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.Email.label}"/>
+                    <apex:inputField value="{!usr.Email}" required="true"/>
+                </apex:pageBlockSectionItem>
+                <!--Route Number-->
+                <apex:pageBlockSectionitem>
+                  <apex:outputLabel value="Wslr Nbr + Rte Nbr"/>
+                  <apex:outputPanel layout="inline" style="vertical-align:middle">
+                    <apex:inputHidden value="{!selRouteNum}" id="targetId" />
+                    <apex:inputText size="20" id="targetName" value="{!selRouteNum}"/>
+                    <a href="#" onclick="openLookupPopup('{!$Component.targetName}', '{!$Component.targetId}'); return false"><apex:image style="vertical-align:middle;width:21px; height:21px" value="/img/icon/telescope16.png" /></a>
+                  </apex:outputPanel>
+                </apex:pageBlockSectionitem> 
+                <!--Role-->                                           
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.Contact.Fields.Role_Picklist__c.label}"/>
+                    <apex:selectList size="1" value="{!selRolePickVal}"  tabIndex="40">
+                        <apex:selectOptions value="{!roleTypes}"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>   
+                <!--Active Flag-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.isActive.label}"/>
+                    <apex:inputField value="{!usr.isActive}"/>
+                </apex:pageBlockSectionItem>
+                <!--MOB Emp ID-->  
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="Mobility Employee ID"/>
+                    <apex:inputField value="{!usr.Employee_Number_US__c}"/>
+                </apex:pageBlockSectionItem>  
+                <!--GSC Flag-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="GoSpotCheck Access"/>
+                    <apex:inputField value="{!usr.gsc_mc__Sync_to_GoSpotCheck__c}"/>
+                </apex:pageBlockSectionItem>
+                <!--Left Side Blank-->
+                <apex:pageBlockSectionItem>
+                </apex:pageBlockSectionItem>
+                <!--SRI Access Flag-->
+                <apex:pageBlockSectionItem rendered="{!userType == 'IND'}">
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.SRI_Access__c.label}"/>
+                    <apex:inputField value="{!usr.SRI_Access__c}"/>
+                </apex:pageBlockSectionItem> 
+                <!--Right Side Blank-->
+                <apex:pageBlockSectionItem rendered="{!userType == 'WOD'}">
+                </apex:pageBlockSectionItem>
+                <!--Left Side Blank-->
+                <apex:pageBlockSectionItem>
+                </apex:pageBlocksectionItem>
+                <!--LOLA Access Flag-->
+                <apex:pageBlockSectionItem rendered="{!updateLolaAccess}">
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.LOLA_Access__c.label}"/>
+                    <apex:inputField value="{!usr.LOLA_Access__c}" />
+                </apex:pageBlockSectionItem>
+                <!--LOLA Access Blank Spot Right-->
+                <apex:pageBlockSectionItem rendered="{updateLolaAccess}">
+                </apex:pageBlockSectionItem>
+                <!--Left Side Blank-->
+                <apex:pageBlockSectionItem>
+                </apex:pageBlockSectionItem>
+                <!--BTC Access Flag-->         
+                <apex:pageBlockSectionItem rendered="{!hasBTCAccess}">
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.BigTinCan_Access__c.label}"/>
+                    <apex:inputField value="{!usr.BigTinCan_Access__c}"/>
+                </apex:pageBlockSectionItem> 
+                <!--BTC Access Blank Spot Right-->
+                <apex:pageBlockSectionItem rendered="{hasBTCAccess}">
+                </apex:pageBlockSectionItem>             
+            </apex:pageBlocksection>
+
+            <apex:pageBlockButtons >
+                <!-- Femi: Added oncomplete action to create service resource,Skill and Territory Memner on Save button-->
+                <apex:commandButton value="Save" action="{!save}" disabled="{!isSaveDisabled}" oncomplete="initiateServiceResource();"/>
+                <apex:commandButton value="Remove User" onclick="confirm('Are you sure you want to remove this user?')" action="{!doRemoveUser}" rendered="{!usr.id != null}"/>
+                <apex:commandButton value="Cancel"  action="{!doCancel}" immediate="true" html-formnovalidate="true" />
+                <apex:actionFunction name="createServiceResource" action="{!createServiceResource}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+
+    <!--IND User Portal-->
+    <apex:form rendered="{!userType='IND'}">
+        <apex:pageMessages />
+        <apex:inputhidden value="{!usr.Title}"/>
+        <apex:pageBlock mode="edit" title="User" id="usrDetailPb">
+                <apex:pageBlocksection title="User Details">
+                <!--First Name-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.FirstName.label}"/>
+                    <apex:inputField value="{!usr.FirstName}"/>
+                </apex:pageBlockSectionItem>
+                <!--Wholesaler Picklist-->
+                <apex:pageBlockSectionItem >
+                    <apex:outputlabel value="Wholesaler"/>
+                    <apex:selectList size="1" value="{!selRoleId}"  tabIndex="50">
+                        <apex:selectOptions value="{!roles}"/>
+                        <apex:actionSupport event="onchange" rerender="usrDetailPb"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>                
+                <!--Last Name-->              
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.LastName.label}"/>
+                    <apex:inputField value="{!usr.LastName}" required="true"/>
+                </apex:pageBlockSectionItem>                    
+                <!--Wholesaler Number-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="Wholesaler Num"/>
+                    <apex:selectList value="{!wholesalerKey}" size="1" tabIndex="70">
+                        <apex:selectOptions value="{!routeOptions}"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>  
+                <!--Email-->                     
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.Email.label}"/>
+                    <apex:inputField value="{!usr.Email}" required="true"/>
+                </apex:pageBlockSectionItem>
+                <!--Route Number-->
+                <apex:pageBlockSectionitem>
+                  <apex:outputLabel value="Wslr Nbr + Rte Nbr"/>
+                  <apex:outputPanel layout="inline" style="vertical-align:middle">
+                    <apex:inputHidden value="{!selRouteNum}" id="targetId" />
+                    <apex:inputText size="20" id="targetName" value="{!selRouteNum}"/>
+                    <a href="#" onclick="openLookupPopup('{!$Component.targetName}', '{!$Component.targetId}'); return false"><apex:image style="vertical-align:middle;width:21px; height:21px" value="/img/icon/telescope16.png" /></a>
+                  </apex:outputPanel>
+                </apex:pageBlockSectionitem> 
+                <!--Role-->                                           
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.Contact.Fields.Role_Picklist__c.label}"/>
+                    <apex:selectList size="1" value="{!selRolePickVal}"  tabIndex="40">
+                        <apex:selectOptions value="{!roleTypes}"/>
+                    </apex:selectList>
+                </apex:pageBlockSectionItem>   
+                <!--Active Flag-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.isActive.label}"/>
+                    <apex:inputField value="{!usr.isActive}"/>
+                </apex:pageBlockSectionItem>
+                <!--MOB Emp ID-->  
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="Mobility Employee ID"/>
+                    <apex:inputField value="{!usr.Employee_Number_US__c}"/>
+                </apex:pageBlockSectionItem>  
+                <!--GSC Flag-->
+                <apex:pageBlockSectionItem>
+                    <apex:outputlabel value="GoSpotCheck Access"/>
+                    <apex:inputField value="{!usr.gsc_mc__Sync_to_GoSpotCheck__c}"/>
+                </apex:pageBlockSectionItem>
+                <!--Left Side Blank-->
+                <apex:pageBlockSectionItem>
+                </apex:pageBlockSectionItem>
+                <!--SRI Access Flag-->
+                <apex:pageBlockSectionItem rendered="{!userType == 'IND'}">
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.SRI_Access__c.label}"/>
+                    <apex:inputField value="{!usr.SRI_Access__c}"/>
+                </apex:pageBlockSectionItem> 
+                <!--Right Side Blank-->
+                <apex:pageBlockSectionItem rendered="{!userType == 'WOD'}">
+                </apex:pageBlockSectionItem>
+                <!--Left Side Blank-->
+                <apex:pageBlockSectionItem>
+                </apex:pageBlocksectionItem>
+                <!--LOLA Access Flag-->
+                <apex:pageBlockSectionItem rendered="{!updateLolaAccess}">
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.LOLA_Access__c.label}"/>
+                    <apex:inputField value="{!usr.LOLA_Access__c}" />
+                </apex:pageBlockSectionItem>
+                <!--LOLA Access Blank Spot Right-->
+                <apex:pageBlockSectionItem rendered="{updateLolaAccess}">
+                </apex:pageBlockSectionItem>
+                <!--Left Side Blank-->
+                <apex:pageBlockSectionItem>
+                </apex:pageBlockSectionItem>
+                <!--BTC Access Flag-->         
+                <apex:pageBlockSectionItem rendered="{!hasBTCAccess}">
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.BigTinCan_Access__c.label}"/>
+                    <apex:inputField value="{!usr.BigTinCan_Access__c}"/>
+                </apex:pageBlockSectionItem> 
+                <!--BTC Access Blank Spot Right-->
+                <apex:pageBlockSectionItem rendered="{hasBTCAccess}">
+                </apex:pageBlockSectionItem>             
+            </apex:pageBlocksection>
+
+            <apex:pageBlockButtons >
+                <!-- Femi: Added oncomplete action to create service resource,Skill and Territory Memner on Save button-->
+                <apex:commandButton value="Save" action="{!save}" disabled="{!isSaveDisabled}" oncomplete="initiateServiceResource();"/>
+                <apex:commandButton value="Remove User" onclick="confirm('Are you sure you want to remove this user?')" action="{!doRemoveUser}" rendered="{!usr.id != null}"/>
+                <apex:commandButton value="Cancel"  action="{!doCancel}" immediate="true" html-formnovalidate="true" />
+                <apex:actionFunction name="createServiceResource" action="{!createServiceResource}"/>
+            </apex:pageBlockButtons>
+        </apex:pageBlock>
+    </apex:form>
+
+
+    <script>
+    var newWin=null;  
+    function openLookupPopup(name, id)
+    {
+        var url="/apex/LookupPopup?namefield=" + name + "&idfield=" + id;
+        newWin=window.open(url, 'Popup','height=500,width=600,left=100,top=100,resizable=no,scrollbars=yes,toolbar=no,status=no');
+        if (window.focus) 
+        {
+            newWin.focus();
+        }
+            
+        return false;
+    }
+                  
+    function closeLookupPopup()
+    {
+       if (null!=newWin)
+       {
+          newWin.close();
+       }  
+    }
+    
+    function initiateServiceResource() {
+        createServiceResource();
+    }
+  </script>
+</apex:page>
