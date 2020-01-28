@@ -385,8 +385,8 @@ public without sharing class AB_UserPortalContactExtension {
                 userErrorMessage = errMsg;
             }
         }
-        //return pr;
-        return null;
+        return pr;
+        //return null;
     }
     
     //08/06/2019 Femi Onakoya: As a user with an ABI_Dispatcher_FSL profile, when I create or update a user with a role of Merchandiser in the User Portal
