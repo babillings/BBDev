@@ -57,11 +57,8 @@
             <apex:outputPanel id="myPanel" style="overflow:scroll;height:{!$Label.UserPortalHeight}px;" layout="block">
                 <apex:pageBlockTable value="{!MyUsersWrapper}" var="c" id="table">
                     <apex:column >
-                        <apex:facet name="header">
-                            
+                        <apex:facet name="header"> 
                             <input type="checkbox" onClick="toggle(this)" />
-                            
-
                         </apex:facet>
                         <apex:inputCheckbox value="{!c.selected}" styleClass="cbSelect"/>
                     </apex:column>
@@ -98,14 +95,6 @@
                         </apex:commandLink>
                      </apex:facet>
                     </apex:column>
-                    <apex:column value="{!c.usrTerr.FSL__Territory_Name__c}" rendered="{IF(userType=='FSL')}">
-                        <apex:facet name="header">
-                            <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
-                                <apex:param name="SortField" value="User Territory" assignTo="{!SortField}" />
-                                <apex:outputText value="User Territory {!IF(SortField=='FSL__User_Territory__c',IF(SortDirection='asc','▲','▼'),'')}" />
-                        </apex:commandLink>
-                     </apex:facet>
-                    </apex:column>
                     <apex:column value="{!c.usr.isActive}">
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
@@ -117,8 +106,8 @@
                     <apex:column value="{!c.usr.gsc_mc__Sync_to_GoSpotCheck__c}" rendered="{!IF(userType=='IND'|| userType =='WOD',true,false)}">
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
-                           <apex:param name="SortField" value="gsc_mc__Sync_to_GoSpotCheck__c" assignTo="{!SortField}" />
-                           <apex:outputText value="{!'GoSpotCheck'} {!IF(SortField=='gsc_mc__Sync_to_GoSpotCheck__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                           <apex:param name="SortField" value="gsc_mc__Sync_to_GoSpotCheck__c" assignTo="{!SortField}"  />
+                           <apex:outputText value="{!'GoSpotCheck'} {!IF(SortField=='gsc_mc__Sync_to_GoSpotCheck__c',IF(SortDirection='asc','▲','▼'),'')}"/>
                         </apex:commandLink>
                      </apex:facet>
                     </apex:column>  
@@ -139,7 +128,40 @@
                            <apex:outputText value="{!'SRI'} {!IF(SortField=='SRI_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
                         </apex:commandLink>
                      </apex:facet>
+                    </apex:column>                    
+                    <apex:column value="{!c.usr.PCR_Access__c}" rendered="{!userType=='IND'}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="SRI_Access__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'PCR'} {!IF(SortField=='PCR_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                        </apex:facet>
                     </apex:column>   
+                    <!-- Femi: July19 - Addded below line -->    
+                    <apex:column headerValue="BTC Access" value="{!c.usr.BigTinCan_Access__c}" rendered="{!hasBTCAccess}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="BigTinCan_Access__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'BTC Access'} {!IF(SortField=='BigTinCan_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>   
+                    <apex:column headerValue="InContact Access" value="{!c.usr.InContact_Access__c}" rendered="{!userType == 'Telesales'}">
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                                <apex:param name="SortField" value="InContact_Access__c" assignTo="{!SortField}" />
+                                <apex:outputText value="{!'InContact'} {!IF(SortField=='InContact_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                            </apex:commandLink>
+                        </apex:facet>
+                    </apex:column>  
+                    <apex:column headerValue="LiveMessage Access" value="{!c.usr.LiveMessage_Access__c}" rendered="{!userType == 'Telesales'}">
+                        <apex:facet name="header">
+                            <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                                <apex:param name="SortField" value="LiveMessage_Access__c" assignTo="{!SortField}" />
+                                <apex:outputText value="{!'LiveMessage'} {!IF(SortField=='LiveMessage_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                            </apex:commandLink>
+                        </apex:facet>
+                    </apex:column> 
                     <apex:column value="{!c.usr.WSLRNbrRouteNbr__c}" rendered="{!IF(userType=='IND' || userType=='Telesales' || userType=='WOD',true,false)}">
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
@@ -164,31 +186,6 @@
                         </apex:commandLink>
                      </apex:facet>
                     </apex:column>  
-                    <!-- Femi: July19 - Addded below line -->    
-                    <apex:column headerValue="BTC Access" value="{!c.usr.BigTinCan_Access__c}" rendered="{!hasBTCAccess}">
-                        <apex:facet name="header">
-                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
-                           <apex:param name="SortField" value="BigTinCan_Access__c" assignTo="{!SortField}" />
-                           <apex:outputText value="{!'BTC Access'} {!IF(SortField=='BigTinCan_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
-                        </apex:commandLink>
-                     </apex:facet>
-                    </apex:column>
-                    <apex:column headerValue="InContact Access" value="{!c.usr.InContact_Access__c}" rendered="{!userType == 'Telesales'}">
-                        <apex:facet name="header">
-                            <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
-                                <apex:param name="SortField" value="InContact_Access__c" assignTo="{!SortField}" />
-                                <apex:outputText value="{!'InContact'} {!IF(SortField=='InContact_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
-                            </apex:commandLink>
-                        </apex:facet>
-                    </apex:column>  
-                    <apex:column headerValue="LiveMessage Access" value="{!c.usr.LiveMessage_Access__c}" rendered="{!userType == 'Telesales'}">
-                        <apex:facet name="header">
-                            <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
-                                <apex:param name="SortField" value="LiveMessage_Access__c" assignTo="{!SortField}" />
-                                <apex:outputText value="{!'LiveMessage'} {!IF(SortField=='LiveMessage_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
-                            </apex:commandLink>
-                        </apex:facet>
-                    </apex:column> 
                     <apex:facet name="footer">Showing Page # {!pageNumber} of {!totalPages}</apex:facet>
                     <apex:facet name="header">
                     </apex:facet>

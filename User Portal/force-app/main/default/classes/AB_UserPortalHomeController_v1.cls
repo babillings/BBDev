@@ -185,8 +185,10 @@ public class AB_UserPortalHomeController_v1
       //Added  USERNAME__C to display login user name for user Femi Onakoya - Daugherty/1/4/2018
       //RA 10/4/2018 - Update for GSC Package
       //Femi: July19 - Modified below line
-      queryUsers =   'SELECT Name, Username, Email, isActive, Title, gsc_mc__Sync_to_GoSpotCheck__c, LOLA_Access__c,BigTinCan_Access__c, SRI_Access__c, ROUTEKEY__c, LastLoginDate, Employee_Number_US__c, WSLRNbrRouteNbr__c,InContact_Access__c,LiveMessage_Access__c FROM User ';      
+      queryUsers =   'SELECT Name, Username, Email, isActive, Title, gsc_mc__Sync_to_GoSpotCheck__c, LOLA_Access__c,BigTinCan_Access__c, SRI_Access__c,PCR_Access__c, ROUTEKEY__c, LastLoginDate, Employee_Number_US__c, WSLRNbrRouteNbr__c,InContact_Access__c,LiveMessage_Access__c FROM User ';      
+
       queryUsers += 'WHERE ';
+
         if(userType == 'Telesales')
         {
             String profileNam = '\'%'+currentUser.Profile.Name.left(9)+'%\'';
@@ -244,28 +246,37 @@ public class AB_UserPortalHomeController_v1
       queryUsers +=  'LIMIT ' + list_size + ' ';
       queryUsers +=  'OFFSET ' + i;
     }
-    
+
+
+
      public List<userPortalWrapper> getMyUsersWrapper() 
     {
-        
         //if(wrapper==null || String.isNotBlank(nameVal)){
           wrapper = new List<userPortalWrapper>();
           buildQuery();
           system.debug('query:*** '+queryUsers);
           List<User> myUsers = Database.query(queryUsers);
+          List<FSL__User_Territory__c> myUserTerr = new List<FSL__User_Territory__c>([SELECT FSL__Territory_Name__c, FSL__User__c FROM FSL__User_Territory__c]);
             Set<String> usernames = new Set<String>();
             for(User u : myUsers)
             {
+                if(userType == 'FSL')
+                {                                
+                    for(FSL__User_Territory__c ut: myUserTerr)
+                    {
+                        if(u.Id == ut.FSL__User__c)
+                        {
+                            //usernames.add(u.username);
+                            //wrapper.add(new userPortalWrapper(u, ut));
+                            wrapper.add(new userPortalWrapper(u, myUserTerr));
+                        }
+                    }
+                }
                 usernames.add(u.username);
+                //match uid to utid
+                //add below add to the
             }
-            
-          for (User u: myUsers)
-            {
-            wrapper.add(new userPortalWrapper(u)); // passing the relevant user rec from conUserRecMap
-          }
-        //}
         return wrapper;
-      
     }
 
     public pageReference doNewUser()
@@ -407,16 +418,18 @@ public class AB_UserPortalHomeController_v1
         
         // Added usr attribute to hold user rec information - femi
         public User usr {get; set;}
+        public List<FSL__User_Territory__c> usrTerr;
+        //set territory, pass in Ut along with user
         
         // added extra parameter to hold user info - femi
-        public userPortalWrapper(User u) {
+        public userPortalWrapper(User u,List<FSL__User_Territory__c> ut) {
           selected = false;
           //con = c;
           usr = u;
+          usrTerr = ut;
         }
 
     }
-
     public PageReference processSelected() {
         //We create a new list of Contacts that we be populated only with users if they are selected
         List<User> selectedUsers = new List<User>();
@@ -491,4 +504,18 @@ public class AB_UserPortalHomeController_v1
         User sn = [select Wholesaler_Number__c from user where id =  :UserInfo.getUserId()];
         return sn.Wholesaler_Number__c;
     }
+
+    /*public List<FSL__User_Territory__c> getUserTerritories(){
+        List<FSL__User_Territory__c> uTerr = new List<FSL__User_Territory__c>();
+            if(userType == 'FSL')
+            {
+                for(User u : myUsers)
+                    {
+                        String userTerrit = '';
+                        userTerrit = [SELECT FSL__Territory_Name__c FROM FSL__User_Territory__c where FSL__User__c =:u.Id LIMIT 1];
+                    }
+            }
+        return userTerrit;
+    }*/
+
 }
