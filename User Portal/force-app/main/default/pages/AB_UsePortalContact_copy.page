@@ -36,11 +36,11 @@
                     <apex:outputlabel value="{!$ObjectType.User.Fields.Email.label}"/>
                     <apex:inputField value="{!usr.Email}" required="true"/>
                 </apex:pageBlockSectionItem>
-                <!--User Territory-->                     
+                <!--Active Flag-->
                 <apex:pageBlockSectionItem>
-                    <apex:outputlabel value="User Territory"/>
-                    <apex:outputText value="{!userUserTerritory}"/>
-                </apex:pageBlockSectionItem>
+                    <apex:outputlabel value="{!$ObjectType.User.Fields.isActive.label}"/>
+                    <apex:inputField value="{!usr.isActive}"/>
+                </apex:pageBlockSectionItem>                
                 <!--Role-->                                           
                 <apex:pageBlockSectionItem>
                     <apex:outputlabel value="{!$ObjectType.Contact.Fields.Role_Picklist__c.label}"/>
@@ -48,11 +48,6 @@
                         <apex:selectOptions value="{!roleTypes}"/>
                     </apex:selectList>
                 </apex:pageBlockSectionItem>             
-                <!--Active Flag-->
-                <apex:pageBlockSectionItem>
-                    <apex:outputlabel value="{!$ObjectType.User.Fields.isActive.label}"/>
-                    <apex:inputField value="{!usr.isActive}"/>
-                </apex:pageBlockSectionItem>                
                 <apex:actionStatus id="pageStatus">
                 <apex:facet name="start">
                     <apex:outputPanel >
@@ -353,7 +348,7 @@
                 <apex:pageBlockSectionItem>
                     <apex:outputlabel value="PCR Access"/>	
                     <apex:inputField value="{!usr.PCR_Access__c}"/>
-                </apex:pageBlockSectionItem>
+            </apex:pageBlockSectionItem>
                 <!--Left Side Blank-->
                 <apex:pageBlockSectionItem>
                 </apex:pageBlocksectionItem>                
@@ -380,7 +375,7 @@
 
             <apex:pageBlockButtons >
                 <!-- Femi: Added oncomplete action to create service resource,Skill and Territory Memner on Save button-->
-                <apex:commandButton value="Save" action="{!save}" disabled="{!isSaveDisabled}" oncomplete="deleteUserTerritory(),initiateServiceResource()"/>
+                <apex:commandButton value="Save" action="{!save}" disabled="{!isSaveDisabled}" oncomplete="initiateServiceResource();"/>
                 <apex:commandButton value="Remove User" onclick="confirm('Are you sure you want to remove this user?')" action="{!doRemoveUser}" rendered="{!usr.id != null}"/>
                 <apex:commandButton value="Cancel"  action="{!doCancel}" immediate="true" html-formnovalidate="true" />
                 <apex:actionFunction name="createServiceResource" action="{!createServiceResource}"/>
@@ -414,6 +409,5 @@
     function initiateServiceResource() {
         createServiceResource();
     }
-
   </script>
 </apex:page>

@@ -1,4 +1,4 @@
-public without sharing class AB_UserPortalContactExtension {
+public without sharing class AB_UserPortalContactExtension_copy {
     public User usr {get;set;}
     public String selRoleId {get;set;}
     public String leadRoleId {get;set;}
@@ -6,7 +6,6 @@ public without sharing class AB_UserPortalContactExtension {
     public String wholesalerKey {get;set;}
     public Set<String> routeNums {get;set;}
     public String selRouteNum {get;set;}
-    public String userUserTerritory {get;set;} //BB
     public Boolean isSaveDisabled {get;set;}
     Map<Id,UserRole> rolesMap;
     Map<String,String> roleNameTitleMap = new Map<String,String>();
@@ -23,7 +22,7 @@ public without sharing class AB_UserPortalContactExtension {
     public User currentUser;
     public String newUserId; //Femi: Created/Selected user id to create Service Resource
     public String userErrorMessage; //Femi: To Capture if any error message in Save method and display the same on oncomplete action
-    public AB_UserPortalContactExtension() 
+    public AB_UserPortalContactExtension_copy() 
     {
         currentUser = [SELECT Id,Profile.Name,UserRoleId,Wholesaler_Number__c FROM User WHERE Id =: UserInfo.getUserId()];
         usr = new User();
@@ -34,7 +33,7 @@ public without sharing class AB_UserPortalContactExtension {
         {
             //RA 10/4/2018 - Update for GSC Package
             //Femi - July19 -  Modified below line
-            usr = [select id, FirstName, LastName, Email, isActive, gsc_mc__Sync_to_GoSpotCheck__c,
+            usr = [select id, FirstName, LastName, Email, isActive, gsc_mc__Sync_to_GoSpotCheck__c, PCR_Access__c,
                    SRI_Access__c, EmployeeNumber, Title, Wholesaler_Number__c, WSLRNbrRouteNbr__c, UserRoleId, Employee_Number_US__c, ProfileId, LOLA_Access__c, BigTinCan_Access__c,InContact_Access__c,LiveMessage_Access__c from User where id =: userId];
         }   
         if(usr.id == UserInfo.getUserId()) 
@@ -164,20 +163,10 @@ public without sharing class AB_UserPortalContactExtension {
             selRolePickVal = defaultRoleConnectorRecs[0].Role_Name__c;  
             //system.debug(selRolePickVal+'***');
         }   
-        
-        //BB START -- Process of querying User Territory for individual user
-        if(userType == 'FSL')
-        {
-            List<FSL__User_Territory__c> uUserTerritory = new List<FSL__User_Territory__c>([SELECT Id, FSL__Territory_Name__c FROM FSL__User_Territory__c WHERE FSL__User__c =: usr.Id]);
-            if(uUserTerritory!= null && uUserTerritory.size() > 0)
-            {
-                userUserTerritory = uUserTerritory[0].FSL__Territory_Name__c;
-            }
-        }
-        // BB END
-
         //habilitacion actualizacion LOLA
+        
         updateLolaAccess = getUpdateLolaAccess();            
+        //
         //system.debug(selRolePickVal+'***roleNameTitleMap: '+roleNameTitleMap);
         //selectedname = 'TPM_PCR_Permission_NEW_v2';
     }
@@ -567,7 +556,7 @@ public without sharing class AB_UserPortalContactExtension {
                                 //Creating User Territory
                                 system.debug('CSRNew: Start creating User Territory');
                                 FSL__User_Territory__c usrTerr = new FSL__User_Territory__c();
-                                usrTerr.FSL__User__c = newUser.Id;
+                                usrTerr.FSL__User__c = newUser.Name;
                                 usrTerr.FSL__ServiceTerritory__c = list_SerTerritories[0].Id;
                                 Insert usrTerr;
                                 system.debug('User Territory Created');
@@ -632,28 +621,16 @@ public without sharing class AB_UserPortalContactExtension {
                             //If Service Terrtory exist, create Service Territory Member
                             if(!list_SerTerritories1.isEmpty())
                             {
-                                try //BB
-                                {
-                                    //Creating ServiceTerritoryMember
-                                    ServiceTerritoryMember stm1 = new ServiceTerritoryMember();
-                                    stm1.ServiceTerritoryId = list_SerTerritories1[0].Id;
-                                    stm1.ServiceResourceId = listSReq[0].Id;
-                                    stm1.EffectiveStartDate = System.today();
-                                    //stm.EffectiveEndDate = null;
-                                    Insert stm1;
-                                }
-                                //BB START
-                                catch(exception e)
-                                {
-                                    ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.CONFIRM,'Service Territory, Skill & User Territory updated successfully.'));
-                                    String errMsg = e.getMessage();
-                                    if(errMsg.contains(' CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY, FSL.TR020_ResourceTerritories_BeforeInsert'))
-                                    errMsg = label.UP_STM;
-                                    ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.Error,errMsg));
-                                    userErrorMessage = errMsg;
-                                    return null;
-                                }
-                                //BB END
+                                system.debug('Service Territory Member commented out for the time being');
+                                system.debug('CSROld: Service Territory Exists, create service territory member');
+                                //Creating ServiceTerritoryMember
+                                ServiceTerritoryMember stm1 = new ServiceTerritoryMember();
+                                stm1.ServiceTerritoryId = list_SerTerritories1[0].Id;
+                                stm1.ServiceResourceId = listSReq[0].Id;
+                                stm1.EffectiveStartDate = System.today();
+                                //stm.EffectiveEndDate = null;
+                                Insert stm1;
+                                system.debug('CSROld: Service Territory Member Created' + stm1.Id);
                             }
                             else //If no matching Service Territory, show the message saying the same
                             {
@@ -667,7 +644,7 @@ public without sharing class AB_UserPortalContactExtension {
                         //Query and check if User Territory exists
                         List<FSL__User_Territory__c> list_UserTerr = new List<FSL__User_Territory__c>([SELECT Id,FSL__ServiceTerritory__c FROM FSL__User_Territory__c WHERE FSL__User__c =: newUser.Id]);
                         //If there is an existing User Territory and if the territory is different than the existing, start logic to delete it
-                        if(list_UserTerr != null && list_UserTerr.size() > 0 && (List_UserTerr[0].FSL__ServiceTerritory__c != list_SerTerritories1[0].Id))
+                        if(list_UserTerr != null && list_UserTerr.size() > 0 && List_UserTerr[0].FSL__ServiceTerritory__c != list_SerTerritories1[0].Id)
                             {
                                 system.debug('Existing Service Resource: User Territory Exits');
                                 delete list_UserTerr;
@@ -678,7 +655,7 @@ public without sharing class AB_UserPortalContactExtension {
                                                                                                         FROM FSL__User_Territory__c 
                                                                                                         WHERE FSL__User__c =: newUser.Id]);
                         //BRIANNA Added a bit to say if the user is active create a new user territory
-                        if(usr.IsActive && (list_UserTerr1 == null || list_UserTerr1.isEmpty()))
+                        if(list_UserTerr1 == null || list_UserTerr1.isEmpty())
                             {
                                 FSL__User_Territory__c userTerr1 = new FSL__User_Territory__c();
                                 userTerr1.FSL__User__c = newUser.Id;
