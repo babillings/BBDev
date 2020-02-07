@@ -1,12 +1,4 @@
-/*******************************************************
- * Created by Slalom Previously
- * 
- * Modification History:
- * 2018 & 2019 by Femi Onakoya
- * 2020 by Brianna Billings
- * *****************************************************/
-
-public without sharing class AB_UserPortalContactExtension {
+public without sharing class AB_UserPortalContactExtension_copy {
     public User usr {get;set;}
     public String selRoleId {get;set;}
     public String leadRoleId {get;set;}
@@ -14,7 +6,6 @@ public without sharing class AB_UserPortalContactExtension {
     public String wholesalerKey {get;set;}
     public Set<String> routeNums {get;set;}
     public String selRouteNum {get;set;}
-    //public String userUserTerritory {get;set;} //BB
     public Boolean isSaveDisabled {get;set;}
     Map<Id,UserRole> rolesMap;
     Map<String,String> roleNameTitleMap = new Map<String,String>();
@@ -31,7 +22,7 @@ public without sharing class AB_UserPortalContactExtension {
     public User currentUser;
     public String newUserId; //Femi: Created/Selected user id to create Service Resource
     public String userErrorMessage; //Femi: To Capture if any error message in Save method and display the same on oncomplete action
-    public AB_UserPortalContactExtension() 
+    public AB_UserPortalContactExtension_copy() 
     {
         currentUser = [SELECT Id,Profile.Name,UserRoleId,Wholesaler_Number__c FROM User WHERE Id =: UserInfo.getUserId()];
         usr = new User();
@@ -42,9 +33,8 @@ public without sharing class AB_UserPortalContactExtension {
         {
             //RA 10/4/2018 - Update for GSC Package
             //Femi - July19 -  Modified below line
-            usr = [SELECT id, FirstName, LastName, Email, isActive, gsc_mc__Sync_to_GoSpotCheck__c, SRI_Access__c, EmployeeNumber, Title, Wholesaler_Number__c, WSLRNbrRouteNbr__c, UserRoleId, Employee_Number_US__c, ProfileId, LOLA_Access__c, BigTinCan_Access__c, InContact_Access__c, LiveMessage_Access__c 
-                    FROM User 
-                    WHERE id =: userId];
+            usr = [select id, FirstName, LastName, Email, isActive, gsc_mc__Sync_to_GoSpotCheck__c, PCR_Access__c,
+                   SRI_Access__c, EmployeeNumber, Title, Wholesaler_Number__c, WSLRNbrRouteNbr__c, UserRoleId, Employee_Number_US__c, ProfileId, LOLA_Access__c, BigTinCan_Access__c,InContact_Access__c,LiveMessage_Access__c from User where id =: userId];
         }   
         if(usr.id == UserInfo.getUserId()) 
         {
@@ -57,9 +47,7 @@ public without sharing class AB_UserPortalContactExtension {
             isSaveDisabled = false;
         }
         //BB END
-        rolesMap = new Map<Id,UserRole>([SELECT name 
-                                            FROM UserRole 
-                                            Limit: Limits.getLimitQueryRows()]);
+        rolesMap = new Map<Id,UserRole>([Select name from UserRole Limit: Limits.getLimitQueryRows()]);
         
         //BB START
         //isSaveDisabled = false;
@@ -70,9 +58,7 @@ public without sharing class AB_UserPortalContactExtension {
         system.debug('***usr.WSLRNbrRouteNbr__c: '+usr.WSLRNbrRouteNbr__c);
         if(String.isNotBlank(usr.WSLRNbrRouteNbr__c)) 
         {
-            List<Route__c> routeLst = [SELECT id, WSLRNbrRouteNbr__c 
-                                        FROM Route__c 
-                                        WHERE WSLRNbrRouteNbr__c =: usr.WSLRNbrRouteNbr__c];
+            List<Route__c> routeLst = [select id, WSLRNbrRouteNbr__c from Route__c where WSLRNbrRouteNbr__c =: usr.WSLRNbrRouteNbr__c];
             system.debug('***routeLst: '+routeLst);
             if(routeLst != null && routeLst.size() > 0)
                 selRouteNum = routeLst[0].WSLRNbrRouteNbr__c;
@@ -137,10 +123,10 @@ public without sharing class AB_UserPortalContactExtension {
         //BB END
 
         //System.debug('@@@==>>typeLike: '+typeLike); 
-        roleConnectorLst = new List<Role_connector__c>([SELECT Role_Name__c, Profile_ID__c, Profile_Name__c, Title__c, Permission_Sets__c 
-                                                            FROM Role_connector__c 
-                                                            WHERE Profile_Name__c LIKE: typeLike 
-                                                            ORDER BY Role_Name__c Limit: Limits.getLimitQueryRows()]); //Femi:Based on the logged in user Collecting all role connected records of type WOD or IND
+        roleConnectorLst = new List<Role_connector__c>(
+            [select Role_Name__c, Profile_ID__c, Profile_Name__c, Title__c, Permission_Sets__c from Role_connector__c where Profile_Name__c like: typeLike
+             order by Role_Name__c Limit: Limits.getLimitQueryRows()]
+        ); //Femi:Based on the logged in user Collecting all role connected records of type WOD or IND
         //System.debug('@@@==>>: '+roleConnectorLst); 
         for(Role_connector__c rc : roleConnectorLst) 
         {
@@ -177,22 +163,10 @@ public without sharing class AB_UserPortalContactExtension {
             selRolePickVal = defaultRoleConnectorRecs[0].Role_Name__c;  
             //system.debug(selRolePickVal+'***');
         }   
-        
-        //BB START -- Process of querying User Territory for individual user
-        /*if(userType == 'FSL')
-        {
-            List<FSL__User_Territory__c> uUserTerritory = new List<FSL__User_Territory__c>([SELECT Id, FSL__Territory_Name__c 
-                                                                                                FROM FSL__User_Territory__c 
-                                                                                                WHERE FSL__User__c =: usr.Id]);
-            if(uUserTerritory!= null && uUserTerritory.size() > 0)
-            {
-                userUserTerritory = uUserTerritory[0].FSL__Territory_Name__c;
-            }
-        }*/
-        // BB END
-
         //habilitacion actualizacion LOLA
+        
         updateLolaAccess = getUpdateLolaAccess();            
+        //
         //system.debug(selRolePickVal+'***roleNameTitleMap: '+roleNameTitleMap);
         //selectedname = 'TPM_PCR_Permission_NEW_v2';
     }
@@ -345,11 +319,7 @@ public without sharing class AB_UserPortalContactExtension {
                 if(roleConnect.Role_Name__c == 'Dispatcher')  // checking only for dispatcher
                 {
                     String keyLike = '%'+wholesalerKey;
-                    usersLst = [SELECT id, UserRole.Name 
-                                    FROM User 
-                                    WHERE ProfileId =: roleNameRcMap.get(selRolePickVal).Profile_ID__c 
-                                    AND isActive = true 
-                                    AND UserRole.Name LIKE: keyLike];
+                    usersLst = [select id, UserRole.Name from User where ProfileId =: roleNameRcMap.get(selRolePickVal).Profile_ID__c and isActive = true and UserRole.Name like: keyLike];
                 }
                 //Femi: below logic is to show the error for if there is more then one active dispatcher per whole saler.
                 if(usersLst != null && usersLst.size() > 0) 
@@ -362,9 +332,7 @@ public without sharing class AB_UserPortalContactExtension {
             }
             if(currentUser.Profile.Name.left(9).toLowerCase() == 'telesales') 
             {
-                List<CallCenter> callCenterLst = [SELECT id, name 
-                                                     FROM Callcenter 
-                                                     WHERE Name = 'inContact Call Center'];
+                List<CallCenter> callCenterLst = [select id, name from Callcenter where Name = 'inContact Call Center'];
                 if(callCenterLst != null && callCenterLst.size() > 0) 
                 {
                     usr.CallCenterId = callCenterLst[0].id;
@@ -455,21 +423,17 @@ public without sharing class AB_UserPortalContactExtension {
                     if(!usr.isActive) //BB
                     {
                         system.debug('user is not active, start the process of removing permission sets'); //BB
-                        List<PermissionSetAssignment> pSetAssignmentsLst = [SELECT Id 
-                                                                                FROM PermissionSetAssignment 
-                                                                                WHERE AssigneeId in : lstUsersToDelete 
-                                                                                AND PermissionSetId IN (SELECT Id 
-                                                                                                            FROM PermissionSet 
-                                                                                                            WHERE IsOwnedByProfile =false)];
+                        List<PermissionSetAssignment> pSetAssignmentsLst = [SELECT Id from PermissionSetAssignment 
+                                                                            WHERE AssigneeId in : lstUsersToDelete AND 
+                                                                            PermissionSetId IN (SELECT Id FROM PermissionSet WHERE IsOwnedByProfile =false)];
                         
                         if(pSetAssignmentsLst != null && pSetAssignmentsLst.size() > 0) 
                         {
                             delete pSetAssignmentsLst;
                             system.debug('Permission Sets have been removed'); //BB
                         }
-                        List<PermissionSetLicenseAssign> pSetAssignmentsLicLst = [SELECT Id 
-                                                                                    FROM PermissionSetLicenseAssign 
-                                                                                    WHERE AssigneeId in : lstUsersToDelete];
+                        List<PermissionSetLicenseAssign> pSetAssignmentsLicLst = [SELECT Id from PermissionSetLicenseAssign 
+                                                                                WHERE AssigneeId in : lstUsersToDelete];
                         
                         if(pSetAssignmentsLicLst != null && pSetAssignmentsLicLst.size() > 0) 
                         {
@@ -498,7 +462,7 @@ public without sharing class AB_UserPortalContactExtension {
         }
         //BB START
         return pr; //uncomment
-        //return null; //BB comment out
+        //return null; //comment out
         //BB END
     }
     
@@ -512,9 +476,7 @@ public without sharing class AB_UserPortalContactExtension {
             {
                 system.debug('CSR: The user has an ID'); //BB
                 //Query the current created/selected user
-                User newUser = [SELECT Id, Name, Wholesaler_Number__c, ProfileId, IsActive 
-                                    FROM User 
-                                    WHERE Id =: newUserId];
+                User newUser = [SELECT Id,Name,Wholesaler_Number__c,ProfileId,IsActive FROM USer WHERE Id =: newUserId];
                 system.debug('CSR: newUser name ='+newUser.Name); //BB
                 String profileId = String.valueOf(newUser.ProfileId);
                 
@@ -522,33 +484,18 @@ public without sharing class AB_UserPortalContactExtension {
                 if(userType == 'FSL' && newUser.IsActive) //BB
                 //if(profileId.subString(0,15) == Label.ABI_Merchandiser_FSL_ProfileId && newUser.IsActive) //BB
                 {
-                    List<Account> list_SerTerritories = new List<Account>([SELECT Service_Territory__r.Id, Service_Territory__r.Name, Service_Territory__r.OperatingHoursId, WSLR_NBR_US__c 
-                                                                                FROM Account 
-                                                                                WHERE WSLR_NBR_US__c = : newUser.Wholesaler_Number__c
-                                                                                ORDER BY LastModifiedDate DESC]);
-                    String servTerrId;
-                    String servTerrName;
-                    if(list_SerTerritories.size()>0)
-                    {
-                        system.debug('Service territory for wholesaler found');
-                        servTerrId = list_SerTerritories[0].Service_Territory__r.Id;
-                        servTerrName = list_SerTerritories[0].Service_Territory__r.Name;
-                    }                           
                     system.debug('CSR: user is active and is a merchandiser'); //BB
                     //If Yes, query for existing ServiceResource if any
-                    List<ServiceResource> listSReq = new List<ServiceResource>([SELECT Id,IsActive 
-                                                                                    FROM ServiceResource 
-                                                                                    WHERE RelatedRecordId =: newUser.Id]);
+                    List<ServiceResource> listSReq = new List<ServiceResource>([SELECT Id,IsActive FROM ServiceResource 
+                                                                                WHERE RelatedRecordId =: newUser.Id]);
                     //system.debug('CSR: Service Resource ID & Status '+listSReq[0].Id + listSReq[0].IsActive);
-                    //If no existing Service Resource create new set of records
-                    if(listSReq.isEmpty()) 
+                    if(listSReq.isEmpty()) //If no existing Service Resource create new set of records
                     {
                         system.debug('CSRNew: No Existing Service Resource'); //BB
                         //Creating new Service Resource
                         ServiceResource sReq = new ServiceResource();
                         sReq.Name = newUser.Name;
                         sReq.IsActive = true;
-                        sReq.TMS__c = servTerrName; //BB
                         //sReq.ResourceType = 'Technician';
                         if(!Test.isRunningTest()) sReq.IsOptimizationCapable = true;
                         sReq.RelatedRecordId = newUser.Id;
@@ -569,6 +516,28 @@ public without sharing class AB_UserPortalContactExtension {
                         if(!String.IsBlank(newUser.Wholesaler_Number__c))//Check for Wholesaler number of the user created/selected
                         {
                             system.debug('CSRNew: User has a wholesaler number'); //BB
+                            //Check if Service Territory exist for the created/selected User wholesaler number
+                            //BB START
+                            //Check if Service Territory exist for the created/selected User wholesaler number
+                            /*List<Account> list_SerTerritories = new List<Account>([SELECT Service_Territory__r.Id
+                                                                                                     FROM Account 
+                                                                                                     WHERE WSLR_NBR_US__c = : newUser.Wholesaler_Number__c
+                                                                                                     ORDER BY LastModifiedDate DESC]);
+                            String servTerrId;
+                            if(list_SerTerritories.size()>0)
+                            {
+                                system.debug('Service territory for wholesaler found');
+                                servTerrId = list_SerTerritories[0].Service_Territory__r.Id;
+                            }                           
+                            */
+                            List<ServiceTerritory> list_SerTerritories = new List<ServiceTerritory>([SELECT Id,Owner_s_Wholesaler_Number__c 
+                                                                                                     FROM ServiceTerritory 
+                                                                                                     WHERE Owner_s_Wholesaler_Number__c = : newUser.Wholesaler_Number__c 
+                                                                                                     ORDER BY LastModifiedDate DESC]);
+                            
+                            //BB END
+
+
                             //If Service Terrtory exist, create Service Territory Member
                             if(!list_SerTerritories.isEmpty())
                             {
@@ -576,8 +545,7 @@ public without sharing class AB_UserPortalContactExtension {
                                 //Create Service Territory Member
                                 system.debug('CSRNew: Start Creating Service Territory Member'); //BB
                                 ServiceTerritoryMember stm = new ServiceTerritoryMember();
-                                // stm.ServiceTerritoryId = list_SerTerritories[0].Id; //BB
-                                stm.ServiceTerritoryId = servTerrId;
+                                stm.ServiceTerritoryId = list_SerTerritories[0].Id;
                                 stm.ServiceResourceId = sReq.Id;
                                 stm.EffectiveStartDate = System.today();
                                 //stm.EffectiveEndDate = null;
@@ -588,9 +556,8 @@ public without sharing class AB_UserPortalContactExtension {
                                 //Creating User Territory
                                 system.debug('CSRNew: Start creating User Territory');
                                 FSL__User_Territory__c usrTerr = new FSL__User_Territory__c();
-                                usrTerr.FSL__User__c = newUser.Id;
-                                //usrTerr.FSL__ServiceTerritory__c = list_SerTerritories[0].Id;//BB
-                                usrTerr.FSL__ServiceTerritory__c = servTerrId;
+                                usrTerr.FSL__User__c = newUser.Name;
+                                usrTerr.FSL__ServiceTerritory__c = list_SerTerritories[0].Id;
                                 Insert usrTerr;
                                 system.debug('User Territory Created');
                                 //BB END
@@ -605,22 +572,24 @@ public without sharing class AB_UserPortalContactExtension {
                     }
                     else //If Service Resource Exist
                     {
+                        //Check if Service Territory exist for the created/selected User wholesaler number
+                        List<ServiceTerritory> list_SerTerritories1 = new List<ServiceTerritory>([SELECT Id,Owner_s_Wholesaler_Number__c 
+                                                                                                    FROM ServiceTerritory 
+                                                                                                    WHERE Owner_s_Wholesaler_Number__c = : newUser.Wholesaler_Number__c
+                                                                                                    ORDER BY LastModifiedDate DESC]);
+                        system.debug('CSROld: Query Service Territory '+list_SerTerritories1[0].Id);
                         
                         system.debug('CSROld: Service Resource already exists');
-                        //BB if(!listSReq[0].IsActive) //Check if it's Inactive and make it active
-                        //BB {
-                            //system.debug('CSROld: Service Resource is not active');
+                        if(!listSReq[0].IsActive) //Check if it's Inactive and make it active
+                        {
+                            system.debug('CSROld: Service Resource is not active');
                             listSReq[0].IsActive = true;
-                            listSReq[0].OwnerId = newUser.Id;
-                            listSReq[0].TMS__c = servTerrName;
                             Update listSReq[0];
-                            //system.debug('CSROld: Service Resource should now be active'+listSReq[0].Id);
-                        //BB }
+                            system.debug('CSROld: Service Resource should now be active'+listSReq[0].Id);
+                        } 
                         
                         //Query and check if Service Resource Skill already exist
-                        List<ServiceResourceSkill> list_Skills = new List<ServiceResourceSkill>([SELECT Id 
-                                                                                                    FROM ServiceResourceSkill 
-                                                                                                    WHERE ServiceResourceId =: listSReq[0].Id]);
+                        List<ServiceResourceSkill> list_Skills = new List<ServiceResourceSkill>([SELECT Id FROM ServiceResourceSkill WHERE ServiceResourceId =: listSReq[0].Id]);
                         system.debug('CSROld: Checking for service resource skill');
 
                         //If there is no existing Service Resource Skill, create new 
@@ -643,39 +612,25 @@ public without sharing class AB_UserPortalContactExtension {
                         }
                         
                         //Query and check if already ServiceTerritoryMember exist
-                        List<ServiceTerritoryMember> list_ServTerr = new List<ServiceTerritoryMember>([SELECT Id 
-                                                                                                        FROM ServiceTerritoryMember 
-                                                                                                        WHERE ServiceResourceId =: listSReq[0].Id]);
+                        List<ServiceTerritoryMember> list_ServTerr = new List<ServiceTerritoryMember>([SELECT Id FROM ServiceTerritoryMember WHERE ServiceResourceId =: listSReq[0].Id]);
                         
                         //If there is no existing Service Territory Member, create new 
                         if(list_ServTerr == null || list_ServTerr.isEmpty())
                         {
                             system.debug('CSROld: Service Territory Member does not exist');
                             //If Service Terrtory exist, create Service Territory Member
-                            if(!list_SerTerritories.isEmpty())
+                            if(!list_SerTerritories1.isEmpty())
                             {
-                                try //BB
-                                {
-                                    //Creating ServiceTerritoryMember
-                                    ServiceTerritoryMember stm1 = new ServiceTerritoryMember();
-                                    stm1.ServiceTerritoryId = servTerrId;
-                                    stm1.ServiceResourceId = listSReq[0].Id;
-                                    stm1.EffectiveStartDate = System.today();
-                                    //stm.EffectiveEndDate = null;
-                                    Insert stm1;
-                                }
-                                //BB START
-                                catch(exception e)
-                                {
-                                    ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.CONFIRM,'Service Territory, Skill & User Territory updated successfully.'));
-                                    String errMsg = e.getMessage();
-                                    if(errMsg.contains(' CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY, FSL.TR020_ResourceTerritories_BeforeInsert'))
-                                    errMsg = label.UP_STM;
-                                    ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.Error,errMsg));
-                                    userErrorMessage = errMsg;
-                                    return null;
-                                }
-                                //BB END
+                                system.debug('Service Territory Member commented out for the time being');
+                                system.debug('CSROld: Service Territory Exists, create service territory member');
+                                //Creating ServiceTerritoryMember
+                                ServiceTerritoryMember stm1 = new ServiceTerritoryMember();
+                                stm1.ServiceTerritoryId = list_SerTerritories1[0].Id;
+                                stm1.ServiceResourceId = listSReq[0].Id;
+                                stm1.EffectiveStartDate = System.today();
+                                //stm.EffectiveEndDate = null;
+                                Insert stm1;
+                                system.debug('CSROld: Service Territory Member Created' + stm1.Id);
                             }
                             else //If no matching Service Territory, show the message saying the same
                             {
@@ -687,11 +642,9 @@ public without sharing class AB_UserPortalContactExtension {
 
 	                    //BB START
                         //Query and check if User Territory exists
-                        List<FSL__User_Territory__c> list_UserTerr = new List<FSL__User_Territory__c>([SELECT Id,FSL__ServiceTerritory__c 
-                                                                                                        FROM FSL__User_Territory__c 
-                                                                                                        WHERE FSL__User__c =: newUser.Id]);
+                        List<FSL__User_Territory__c> list_UserTerr = new List<FSL__User_Territory__c>([SELECT Id,FSL__ServiceTerritory__c FROM FSL__User_Territory__c WHERE FSL__User__c =: newUser.Id]);
                         //If there is an existing User Territory and if the territory is different than the existing, start logic to delete it
-                        if(list_UserTerr != null && list_UserTerr.size() > 0 && (List_UserTerr[0].FSL__ServiceTerritory__c != servTerrId))
+                        if(list_UserTerr != null && list_UserTerr.size() > 0 && List_UserTerr[0].FSL__ServiceTerritory__c != list_SerTerritories1[0].Id)
                             {
                                 system.debug('Existing Service Resource: User Territory Exits');
                                 delete list_UserTerr;
@@ -702,11 +655,11 @@ public without sharing class AB_UserPortalContactExtension {
                                                                                                         FROM FSL__User_Territory__c 
                                                                                                         WHERE FSL__User__c =: newUser.Id]);
                         //BRIANNA Added a bit to say if the user is active create a new user territory
-                        if(usr.IsActive && (list_UserTerr1 == null || list_UserTerr1.isEmpty()))
+                        if(list_UserTerr1 == null || list_UserTerr1.isEmpty())
                             {
                                 FSL__User_Territory__c userTerr1 = new FSL__User_Territory__c();
                                 userTerr1.FSL__User__c = newUser.Id;
-                                userTerr1.FSL__ServiceTerritory__c = servTerrId;
+                                userTerr1.FSL__ServiceTerritory__c = list_SerTerritories1[0].Id;
                                 Insert userTerr1;
                                 system.debug('Existing Service Resource: Created user territory');
                             }
@@ -751,10 +704,7 @@ public without sharing class AB_UserPortalContactExtension {
         Set<ID> currentRoleIds = new Set<ID>();
         
         // get all of the roles underneath the passed roles
-        for(UserRole userRole :[SELECT Id, Name 
-                                FROM UserRole 
-                                WHERE ParentRoleId IN :roleIds 
-                                AND ParentRoleID != null]) {
+        for(UserRole userRole :[select Id, Name from UserRole where ParentRoleId IN :roleIds AND ParentRoleID != null]) {
             String roleName = String.valueOf(userRole.Name);
             
             if(roleName.indexOf(Label.Owner)>0){
@@ -773,9 +723,7 @@ public without sharing class AB_UserPortalContactExtension {
     public pageReference doRemoveUser(){
         PageReference pageRef;
         usr.isActive = false;
-        List<User> users = [SELECT id, ManagerId 
-                            FROM User 
-                            WHERE ManagerId =: usr.id];
+        List<User> users = [select id, ManagerId from User where ManagerId =: usr.id];
         if(users != null && users.size() > 0)
             ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.Error,label.UserManagerReferenceError));
         else {
@@ -790,9 +738,7 @@ public without sharing class AB_UserPortalContactExtension {
     }
     
     public Boolean getUpdateLolaAccess(){
-        List<Wholesaler_Lola_Access__c> ws = [SELECT Wholesaler_Number__c 
-                                                FROM Wholesaler_Lola_Access__c 
-                                                WHERE Wholesaler_Number__c = :getWholsalerNumber() limit 1];
+        List<Wholesaler_Lola_Access__c> ws = [SELECT Wholesaler_Number__c FROM Wholesaler_Lola_Access__c WHERE Wholesaler_Number__c = :getWholsalerNumber() limit 1];
         Boolean ret = false;
         if (!ws.isEmpty()){
             ret = true;
@@ -805,10 +751,8 @@ public without sharing class AB_UserPortalContactExtension {
         Boolean isTrue = false;
         String whslrNum = getWholsalerNumber();
         if(String.isNotBlank(whslrNum)) {
-            List<Wholesaler_App_Config__c> appConfigs = new List<Wholesaler_App_Config__c>([SELECT Name 
-                                                                                            FROM Wholesaler_App_Config__c 
-                                                                                            WHERE Name =: whslrNum 
-                                                                                            AND Application_Name__c = 'BigTinCan']
+            List<Wholesaler_App_Config__c> appConfigs = new List<Wholesaler_App_Config__c>(
+                [select Name from Wholesaler_App_Config__c where Name =: whslrNum and Application_Name__c = 'BigTinCan']
             );
             if(appConfigs.size() > 0) {
                 isTrue = true;
@@ -818,9 +762,7 @@ public without sharing class AB_UserPortalContactExtension {
     }
     //Femi - July19 - ENDS
     public String getWholsalerNumber(){
-        User sn = [SELECT Wholesaler_Number__c 
-                    FROM user 
-                    WHERE id =  :UserInfo.getUserId()];
+        User sn = [select Wholesaler_Number__c from user where id =  :UserInfo.getUserId()];
         return sn.Wholesaler_Number__c;
     }    
 }
