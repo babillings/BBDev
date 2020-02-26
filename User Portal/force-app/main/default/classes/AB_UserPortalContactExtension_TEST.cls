@@ -7,7 +7,7 @@ public class AB_UserPortalContactExtension_TEST {
                 u = new User(
                 ProfileId = [SELECT Id FROM Profile WHERE Name =: type].Id,
                 LastName = 'last '+type,
-                Email = 'puser000@amamama.com',
+                Email = 'puser000'+System.currentTimeMillis()+'@amamama.com',
                 Username = 'puser000@amamama'+roleType+'.com' + System.currentTimeMillis()+roleType,
                 CompanyName = 'TEST',
                 Title = 'title',
@@ -97,7 +97,7 @@ public class AB_UserPortalContactExtension_TEST {
         UserRole r2 = new UserRole(DeveloperName = 'MyCustomRole3', Name = 'IND Leadership');
         insert r2;
 
-        List<User> usrs = createUser(2, false);
+        List<User> usrs = createUser(1, false);
         insert usrs;
         User u = [SELECT id, name, UserRoleId,Alias,Email,EmailEncodingKey, 
                     LastName,LanguageLocaleKey,LocaleSidKey,
@@ -147,12 +147,14 @@ public class AB_UserPortalContactExtension_TEST {
                 Role_connector__c rc = new Role_connector__c();
                 rc.Profile_ID__c = usrs[0].profileid;
                 rc.Profile_Name__c = 'WOD Management';
-                rc.Role_Name__c = 'SEC';
+                rc.Role_Name__c = 'Dispatcher';
                 rc.Permission_Sets__c = [SELECT ID FROM PermissionSet WHERE Name like 'ABIQ%' LIMIT 1].ID;
+                insert rc;
                 Test.setCurrentPage(Page.AB_UserPortalContact);
                 ApexPages.currentPage().getParameters().put('id', usr.id);
                 
                 AB_UserPortalContactExtension obj = new AB_UserPortalContactExtension();
+                obj.UserType = 'FSL';
                 obj.getRoleTypes();
                 obj.getSubRouteNums();
                 obj.getRouteOptions();
@@ -177,17 +179,20 @@ public class AB_UserPortalContactExtension_TEST {
         insert r1;
         
                
-            List<User> usrs = createUser(2, true);
+            List<User> usrs = createUser(1, true);
             insert usrs;
              User u = [SELECT id, name, UserRoleId,Alias,Email,EmailEncodingKey, 
                        LastName,LanguageLocaleKey,LocaleSidKey,
-                       ProfileId,TimeZoneSidKey,UserName from user WHERE LastName = 'ProfileNull' limit 1];
-        System.runAs(u) {     
-            for(User usr : usrs) {
+                       ProfileId,TimeZoneSidKey,UserName from user WHERE LastName =: 'ProfileNull' limit 1];
+        System.runAs(u) 
+        {     
+            for(User usr : usrs) 
+            {
                 Role_connector__c rc = new Role_connector__c();
                 rc.Profile_ID__c = usrs[0].profileid;
                 rc.Profile_Name__c = 'WOD Management';
                 rc.Role_Name__c = 'SEC';
+                rc.Permission_Sets__c = [SELECT ID FROM PermissionSet WHERE Name like 'ABIQ%' LIMIT 1].ID;
                 Test.setCurrentPage(Page.AB_UserPortalContact);
                 ApexPages.currentPage().getParameters().put('id', usr.id);
                 
@@ -197,6 +202,8 @@ public class AB_UserPortalContactExtension_TEST {
                 obj.getRouteOptions();
                 obj.getUpdateLolaAccess();
                 obj.selRolePickVal = 'SEC';
+                
+                obj.userUserTerritory = 'Denver';
                 obj.save();
                 try {
                     obj.doRemoveUser();
@@ -208,7 +215,8 @@ public class AB_UserPortalContactExtension_TEST {
     }    
     public static testmethod void createServiceResourceNew()
     {
-        User u = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' AND Id !=: UserInfo.getUserId() AND IsActive = true LIMIT 1];
+        Test.startTest();
+		User u = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' AND Id !=: UserInfo.getUserId() AND IsActive = true LIMIT 1];
         User newDisUsr = createUser('ABI_Dispatcher_FSL','WOD',false);
         newDisUsr.Wholesaler_Number__c = '12345';
         newDisUsr.IsActive = true;
@@ -226,7 +234,7 @@ public class AB_UserPortalContactExtension_TEST {
             insert oh;
             
             ServiceTerritory st = new ServiceTerritory();
-            st.Name = 'Ser Terr';
+            st.Name = 'Loveland';
             //st.OwnerId = newUsr.Id; //BB Comment Out
             st.OwnerId = newDisUsr.Id;//BB
             st.OperatingHoursId = oh.Id;
@@ -249,30 +257,26 @@ public class AB_UserPortalContactExtension_TEST {
             Insert accnt;
             //BB END
             
+                Test.setCurrentPage(Page.AB_UserPortalContact);
+                ApexPages.currentPage().getParameters().put('id', newDisUsr.id);
+                AB_UserPortalContactExtension obj = new AB_UserPortalContactExtension();
+                
+                obj.getRoleTypes();
+                obj.getSubRouteNums();
+                obj.getRouteOptions();
+                obj.getUpdateLolaAccess();
+                obj.selRolePickVal = 'Dispatcher';
+                obj.UserType = 'Telesales';
+                obj.save();
+            
         }
-        System.runAs(u){
-            Test.startTest();
-
-
-            AB_UserPortalContactExtension cls = new AB_UserPortalContactExtension();
-            cls.newUserId = newUsr.Id;
-            cls.createServiceResource();
-            ServiceResource sReq = new ServiceResource();
-            sReq.Name = 'Test';
-            sReq.IsActive = true;
-            //sReq.ResourceType = 'Technician';
-            //sReq.IsOptimizationCapable = true;
-            cls.newUserId = newUsr.Id;
-            sReq.RelatedRecordId = newUsr.Id;
-            //Insert sReq;
-            //cls.createServiceResource();
             Test.stopTest();
+    
         }
-        
-    }
     
     public static testmethod void createServiceResourceExist()
     {
+         Test.startTest();
         User u = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' AND Id !=: UserInfo.getUserId() AND IsActive = true LIMIT 1];
         User newDisUsr = createUser('ABI_Dispatcher_FSL','WOD',false);
         newDisUsr.Wholesaler_Number__c = '12345';
@@ -284,13 +288,15 @@ public class AB_UserPortalContactExtension_TEST {
         newUsr.IsActive = true;
         Insert newUsr;
         
-        System.runAs(newDisUsr){
+        System.runAs(newDisUsr)
+        {
+           
             OperatingHours oh = new OperatingHours();
             oh.Name = 'TestOH';
             insert oh;
             
             ServiceTerritory st = new ServiceTerritory();
-            st.Name = 'Ser Terr';
+            st.Name = 'Denver';
             //st.OwnerId = newUsr.Id;//BB Comment Out
             st.OwnerId = newDisUsr.Id; //BB
             st.OperatingHoursId = oh.Id;
@@ -300,7 +306,7 @@ public class AB_UserPortalContactExtension_TEST {
             ServiceResource sReq = new ServiceResource();
             sReq.Name = 'Test';
             sReq.IsActive = true;
-            //sReq.ResourceType = 'Technician';
+            sReq.ResourceType = 'T';
             //sReq.IsOptimizationCapable = true;
             sReq.RelatedRecordId = newUsr.Id;
             sReq.IsActive = false;
@@ -319,16 +325,115 @@ public class AB_UserPortalContactExtension_TEST {
             accnt.WSLR_NBR_US__c = '12345';
             Insert accnt;
             //BB END
-            
+   
         }
-        System.runAs(u){
-            Test.startTest();
+        
+        system.runAs(newDisUsr)
+        {
+            
+            
+            Test.setCurrentPage(Page.AB_UserPortalContact);
+                ApexPages.currentPage().getParameters().put('id', newDisUsr.id);
+                AB_UserPortalContactExtension obj = new AB_UserPortalContactExtension();
+                
+                obj.getRoleTypes();
+                obj.getSubRouteNums();
+                obj.getRouteOptions();
+                obj.getUpdateLolaAccess();
+                obj.selRolePickVal = 'Dispatcher';
+                obj.UserType = 'Telesales';
+                obj.save();
             
             AB_UserPortalContactExtension cls = new AB_UserPortalContactExtension();
             cls.newUserId = newUsr.Id;
             cls.createServiceResource();
-            Test.stopTest();
+           
+            
         }
+        
+        Test.stopTest();    
+        
+        
+    }
+    public static testmethod void createServiceResourceNotExist()
+    {
+         Test.startTest();
+        User u = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' AND Id !=: UserInfo.getUserId() AND IsActive = true LIMIT 1];
+        User newDisUsr = createUser('ABI_Dispatcher_FSL','WOD',false);
+        newDisUsr.Wholesaler_Number__c = '12345';
+        newDisUsr.IsActive = true;
+        Insert newDisUsr;
+        
+        User newUsr = createUser('ABI_Merchandiser_FSL','WOD',false);
+        newUsr.Wholesaler_Number__c = '12345';
+        newUsr.IsActive = true;
+        Insert newUsr;
+        
+        System.runAs(newDisUsr)
+        {
+           
+            OperatingHours oh = new OperatingHours();
+            oh.Name = 'TestOH';
+            insert oh;
+            
+            ServiceTerritory st = new ServiceTerritory();
+            st.Name = 'Denver';
+            //st.OwnerId = newUsr.Id;//BB Comment Out
+            st.OwnerId = newDisUsr.Id; //BB
+            st.OperatingHoursId = oh.Id;
+            st.IsActive = true;
+            Insert st;
+            
+            ServiceResource sReq = new ServiceResource();
+            sReq.Name = 'Test';
+            sReq.IsActive = true;
+            sReq.ResourceType = 'T';
+            //sReq.IsOptimizationCapable = true;
+            sReq.RelatedRecordId = newUsr.Id;
+            sReq.IsActive = false;
+            //Insert sReq;
+
+            FSL__User_Territory__c ut = new FSL__User_Territory__c();
+            ut.FSL__ServiceTerritory__c = st.Id;
+            ut.FSL__User__c = newUsr.Id;
+            Insert ut;
+
+            //BB START
+            Account accnt = new Account();
+            accnt.Name = 'Test Account';
+            accnt.RecordTypeId = '012U0000000E9k6IAC';
+            accnt.Service_Territory__c = st.Id;
+            accnt.WSLR_NBR_US__c = '12345';
+            Insert accnt;
+            //BB END
+   
+        }
+        
+        system.runAs(newDisUsr)
+        {
+            
+            
+            Test.setCurrentPage(Page.AB_UserPortalContact);
+                ApexPages.currentPage().getParameters().put('id', newDisUsr.id);
+                AB_UserPortalContactExtension obj = new AB_UserPortalContactExtension();
+                
+                obj.getRoleTypes();
+                obj.getSubRouteNums();
+                obj.getRouteOptions();
+                obj.getUpdateLolaAccess();
+                obj.selRolePickVal = 'Dispatcher';
+                obj.UserType = 'Telesales';
+                obj.save();
+            
+            AB_UserPortalContactExtension cls = new AB_UserPortalContactExtension();
+            cls.newUserId = newUsr.Id;
+            cls.createServiceResource();
+           
+            
+        }
+        
+        Test.stopTest();    
+        
         
     }
     
@@ -359,7 +464,7 @@ public class AB_UserPortalContactExtension_TEST {
             ServiceResource sReq = new ServiceResource();
             sReq.Name = 'Test';
             sReq.IsActive = true;
-            //sReq.ResourceType = 'Technician';
+            sReq.ResourceType = 'T';
             //sReq.IsOptimizationCapable = true;
             sReq.RelatedRecordId = newUsr.Id;
             sReq.IsActive = false;
@@ -407,30 +512,43 @@ public class AB_UserPortalContactExtension_TEST {
     public static testmethod void saveTeleSales()
     {
         Test.startTest();
+        Test.setCurrentPage(Page.AB_UserPortalContact);
+        User u = [SELECT Id FROM User WHERE Profile.Name = 'System Administrator' AND Id !=: UserInfo.getUserId() AND IsActive = true LIMIT 1];
         String uniqueUserName = 'standarduser' + DateTime.now().getTime() + '@testorg.com';
-        Profile p = [SELECT Id FROM Profile WHERE Name='Standard User'];
+        Profile p = [SELECT Id FROM Profile WHERE Name like 'Telesales Team Lead'];
         UserRole r1 = new UserRole(DeveloperName = 'MyCustomRole1', Name = 'WOD');
         insert r1;
         
+        
+		
                
         User newUsr = createUser('Telesales Team Lead','WOD',false);
         newUsr.Wholesaler_Number__c = '12345';
-        newUsr.WSLRNbrRouteNbr__c = ''; //BB
+        newUsr.WSLRNbrRouteNbr__c = '123456'; //BB
         newUsr.IsActive = true;
         newUsr.Title = 'Telesales Team Lead';
         newUsr.InContact_Access__c = true; //BB
+        newUsr.profileId = p.id;
+        newUsr.LiveMessage_Access__c = True;
         Insert newUsr;
         
+        User newUsr2 = createUser('Telesales Team Lead','WOD',false);
+        newUsr2.IsActive = true;
+        newUsr.LiveMessage_Access__c = True;
+        Insert newUsr2;
+        
         List<User> usrs = new List<User>{newUsr};
-        System.runAs(newUsr) {     
+ 
+        System.runAs(newUsr2) {     
             for(User usr : usrs) {
                 Role_connector__c rc = new Role_connector__c();
-                rc.Profile_ID__c = usrs[0].profileid;
+                rc.Profile_ID__c = usr.profileid;
                 rc.Profile_Name__c = 'Telesales Team Lead';
                 rc.Role_Name__c = 'Telesales Team Lead';
                 rc.Permission_Sets__c = [SELECT ID FROM PermissionSet WHERE Name like 'Telesales%' LIMIT 1].ID;
-                Test.setCurrentPage(Page.AB_UserPortalContact);
-                ApexPages.currentPage().getParameters().put('id', usr.id);
+				insert rc;
+                ApexPages.currentPage().getParameters().put('id', newUsr.id);
+                
                 
                 AB_UserPortalContactExtension obj = new AB_UserPortalContactExtension();
                 obj.getRoleTypes();
@@ -439,10 +557,7 @@ public class AB_UserPortalContactExtension_TEST {
                 obj.getUpdateLolaAccess();
                 obj.selRolePickVal = 'Telesales Team Lead';
                 obj.save();
-                try {
-                    obj.doRemoveUser();
-                }catch(Exception e){}
-                obj.doCancel();
+               
             }
         }
         Test.stopTest();

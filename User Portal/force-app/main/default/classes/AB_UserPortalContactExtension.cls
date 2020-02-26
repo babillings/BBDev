@@ -1,12 +1,13 @@
 /*******************************************************
  * Created by Slalom Previously
- * 
+ *
  * Modification History:
  * 2018 & 2019 by Femi Onakoya
  * 2020 by Brianna Billings
  * *****************************************************/
-
-public without sharing class AB_UserPortalContactExtension {
+ 
+public without sharing class AB_UserPortalContactExtension 
+{
     public User usr {get;set;}
     public String selRoleId {get;set;}
     public String leadRoleId {get;set;}
@@ -14,7 +15,7 @@ public without sharing class AB_UserPortalContactExtension {
     public String wholesalerKey {get;set;}
     public Set<String> routeNums {get;set;}
     public String selRouteNum {get;set;}
-    //public String userUserTerritory {get;set;} //BB
+    public String userUserTerritory {get;set;} //BB
     public Boolean isSaveDisabled {get;set;}
     Map<Id,UserRole> rolesMap;
     Map<String,String> roleNameTitleMap = new Map<String,String>();
@@ -31,47 +32,48 @@ public without sharing class AB_UserPortalContactExtension {
     public User currentUser;
     public String newUserId; //Femi: Created/Selected user id to create Service Resource
     public String userErrorMessage; //Femi: To Capture if any error message in Save method and display the same on oncomplete action
-    public AB_UserPortalContactExtension() 
+    public AB_UserPortalContactExtension()
     {
         currentUser = [SELECT Id,Profile.Name,UserRoleId,Wholesaler_Number__c FROM User WHERE Id =: UserInfo.getUserId()];
         usr = new User();
         newUserId = '';
         userErrorMessage = '';
-        String userId = ApexPages.currentPage().getParameters().get('id');   
-        if(String.isNotBlank(userId)) 
+        String userId = ApexPages.currentPage().getParameters().get('id');  
+        if(String.isNotBlank(userId))
         {
             //RA 10/4/2018 - Update for GSC Package
             //Femi - July19 -  Modified below line
-            usr = [SELECT id, FirstName, LastName, Email, isActive, gsc_mc__Sync_to_GoSpotCheck__c, SRI_Access__c, EmployeeNumber, Title, Wholesaler_Number__c, WSLRNbrRouteNbr__c, UserRoleId, Employee_Number_US__c, ProfileId, LOLA_Access__c, BigTinCan_Access__c, InContact_Access__c, LiveMessage_Access__c 
-                    FROM User 
+            usr = [SELECT id, FirstName, Alias, LastName, Email, isActive, gsc_mc__Sync_to_GoSpotCheck__c, PCR_Access__c, SRI_Access__c, EmployeeNumber, Title, Wholesaler_Number__c, WSLRNbrRouteNbr__c, UserRoleId, Employee_Number_US__c, ProfileId, LOLA_Access__c, BigTinCan_Access__c, InContact_Access__c, LiveMessage_Access__c
+                    FROM User
                     WHERE id =: userId];
-        }   
-        if(usr.id == UserInfo.getUserId()) 
+        }  
+        system.debug('**usr from query :'+usr);
+        if(usr.id == UserInfo.getUserId())
         {
             isSaveDisabled = true;
             ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.Info,'Current logged in user record cannot be saved. Please contact your Administrator.'));
-        }       
+        }      
         //BB START If the user is editing themselves, don't let them save
-        else 
+        else
         {
             isSaveDisabled = false;
         }
         //BB END
-        rolesMap = new Map<Id,UserRole>([SELECT name 
-                                            FROM UserRole 
+        rolesMap = new Map<Id,UserRole>([SELECT name
+                                            FROM UserRole
                                             Limit: Limits.getLimitQueryRows()]);
-        
+       
         //BB START
         //isSaveDisabled = false;
         //BB END
-
+ 
         if(String.isNotBlank(usr.Wholesaler_Number__c))
             wholesalerKey = usr.Wholesaler_Number__c;
         system.debug('***usr.WSLRNbrRouteNbr__c: '+usr.WSLRNbrRouteNbr__c);
-        if(String.isNotBlank(usr.WSLRNbrRouteNbr__c)) 
+        if(String.isNotBlank(usr.WSLRNbrRouteNbr__c))
         {
-            List<Route__c> routeLst = [SELECT id, WSLRNbrRouteNbr__c 
-                                        FROM Route__c 
+            List<Route__c> routeLst = [SELECT id, WSLRNbrRouteNbr__c
+                                        FROM Route__c
                                         WHERE WSLRNbrRouteNbr__c =: usr.WSLRNbrRouteNbr__c];
             system.debug('***routeLst: '+routeLst);
             if(routeLst != null && routeLst.size() > 0)
@@ -82,11 +84,11 @@ public without sharing class AB_UserPortalContactExtension {
         currentUserRoleId = UserInfo.getUserRoleId();
         system.debug('****currentUserRoleId: '+currentUserRoleId);
         system.debug('****LIMITS: '+Limits.getLimitQueryRows());
-        
+       
         //currentUserRoleName = AB_UserPortalHelpers.getUserRoleName(currentUserRoleId);
         if (currentUserRoleId!=null)
         {
-            currentUserRoleName = rolesMap.get(currentUserRoleId).Name;   
+            currentUserRoleName = rolesMap.get(currentUserRoleId).Name;  
         }
         //BB START
         /*
@@ -117,12 +119,12 @@ public without sharing class AB_UserPortalContactExtension {
             typeLike = '%FSL%';
         }
         system.debug('USERTYPE : '+userType);
-
+ 
         //BB END
-
-        //System.debug('@@@==>>: '+roleConnectorLst); 
-        //System.debug('@@@==>>Prof Type: '+currentUser.Profile.Name.left(9).toLowerCase()); 
-        
+ 
+        //System.debug('@@@==>>: '+roleConnectorLst);
+        //System.debug('@@@==>>Prof Type: '+currentUser.Profile.Name.left(9).toLowerCase());
+       
         //BB START
         /*
         if(currentUser.Profile.Name.left(9).toLowerCase() == 'telesales') //For TeleSales Profile : Femi july 19
@@ -135,30 +137,30 @@ public without sharing class AB_UserPortalContactExtension {
         }
         */
         //BB END
-
-        //System.debug('@@@==>>typeLike: '+typeLike); 
-        roleConnectorLst = new List<Role_connector__c>([SELECT Role_Name__c, Profile_ID__c, Profile_Name__c, Title__c, Permission_Sets__c 
-                                                            FROM Role_connector__c 
-                                                            WHERE Profile_Name__c LIKE: typeLike 
+ 
+        //System.debug('@@@==>>typeLike: '+typeLike);
+        roleConnectorLst = new List<Role_connector__c>([SELECT Role_Name__c, Profile_ID__c, Profile_Name__c, Title__c, Permission_Sets__c
+                                                            FROM Role_connector__c
+                                                            WHERE Profile_Name__c LIKE: typeLike
                                                             ORDER BY Role_Name__c Limit: Limits.getLimitQueryRows()]); //Femi:Based on the logged in user Collecting all role connected records of type WOD or IND
-        //System.debug('@@@==>>: '+roleConnectorLst); 
-        for(Role_connector__c rc : roleConnectorLst) 
+        //System.debug('@@@==>>: '+roleConnectorLst);
+        for(Role_connector__c rc : roleConnectorLst)
         {
             roleNameRcMap.put(rc.Role_Name__c,rc); // collecting role name and correcponding role connector record
             if(usr.ProfileId == rc.Profile_ID__c) // checking if the profile id of logged in user is == role connector profile id. because there can be multiple role connect record for same profile id
-            { 
+            {
                 defaultRoleConnectorRecs.add(rc); // // if there is a match i am adding in this list
             }
-        } 
+        }
         List<SelectOption> roleOptions = getRoles();
-        if(roleOptions.size() > 0) 
+        if(roleOptions.size() > 0)
         {
             if(usr.UserRoleId != null)
                 selRoleId = usr.UserRoleId;
             else
                 selRoleId = roleOptions[0].getValue();
             //leadRoleId = selRoleId; //Avoid missing wholesaler issue by Femi
-            for(SelectOption option : roleOptions) 
+            for(SelectOption option : roleOptions)
             {
                 System.debug('GETLABEL: '+option.getLabel());
                 if(option.getLabel().endsWith('Leadership'))
@@ -174,71 +176,72 @@ public without sharing class AB_UserPortalContactExtension {
         }
         if(String.isNotBlank(usr.ProfileId) && defaultRoleConnectorRecs != null && defaultRoleConnectorRecs.size() > 0)  //for existing user
         {
-            selRolePickVal = defaultRoleConnectorRecs[0].Role_Name__c;  
+            selRolePickVal = defaultRoleConnectorRecs[0].Role_Name__c; 
             //system.debug(selRolePickVal+'***');
-        }   
-        
+        }  
+       
         //BB START -- Process of querying User Territory for individual user
-        /*if(userType == 'FSL')
+        if(userType == 'FSL')
         {
-            List<FSL__User_Territory__c> uUserTerritory = new List<FSL__User_Territory__c>([SELECT Id, FSL__Territory_Name__c 
-                                                                                                FROM FSL__User_Territory__c 
+            List<FSL__User_Territory__c> uUserTerritory = new List<FSL__User_Territory__c>([SELECT Id, FSL__Territory_Name__c
+                                                                                                FROM FSL__User_Territory__c
                                                                                                 WHERE FSL__User__c =: usr.Id]);
             if(uUserTerritory!= null && uUserTerritory.size() > 0)
             {
                 userUserTerritory = uUserTerritory[0].FSL__Territory_Name__c;
             }
-        }*/
+            //return userUserTerritory;
+        }
         // BB END
-
+ 
         //habilitacion actualizacion LOLA
-        updateLolaAccess = getUpdateLolaAccess();            
+        updateLolaAccess = getUpdateLolaAccess();           
         //system.debug(selRolePickVal+'***roleNameTitleMap: '+roleNameTitleMap);
         //selectedname = 'TPM_PCR_Permission_NEW_v2';
     }
-    public void init() 
+    public void init()
     {
         options = new List<SelectOption>();
         roleTypeOptions = new List<SelectOption>();
         //system.debug('***selRoleId: '+selRoleId);
         String myRoleName = AB_UserPortalHelpers.getUserRoleName(selRoleId);//Avoid missing wholesaler issue by Femi (uncommented)
-        //Commented below logic - //Avoid missing wholesaler issue by Femi 
+        //Commented below logic - //Avoid missing wholesaler issue by Femi
         /*String myRoleName;
         if (leadRoleId!=null){
             system.debug('@@@leadRoleId: '+leadRoleId);
             myRoleName = rolesMap.get(leadRoleId).Name;
         }*/
         system.debug('myRoleName: '+myRoleName);
-        if(String.isNotBlank(myRoleName)) 
+        if(String.isNotBlank(myRoleName))
         {
             pattern myPattern = pattern.compile('\\b\\d{5}\\b');
-            matcher myMatcher = myPattern.matcher(myRoleName);   
-            //options.add(new SelectOption('','--None--'));        
-            while (myMatcher.find()) 
-            { 
+            matcher myMatcher = myPattern.matcher(myRoleName);  
+            //options.add(new SelectOption('','--None--'));       
+            while (myMatcher.find())
+            {
                 //if(routeNums == null) {
                 wholesalerSearchKeys.add(myMatcher.group()+'%');
-                //}                
+                //}               
                 options.add(new SelectOption(myMatcher.group(),myMatcher.group()));
             }
             system.debug('options in init: '+options);
-            if(routeNums == null && wholesalerSearchKeys.size() > 0) 
+            if(routeNums == null && wholesalerSearchKeys.size() > 0)
             {
                 routeNums = new Set<String>();
-                for(Route__c route : [select id,WSLRNbrRouteNbr__c from Route__c 
-                                      where WSLRNbrRouteNbr__c like: wholesalerSearchKeys]) 
+                for(Route__c route : [select id,WSLRNbrRouteNbr__c from Route__c
+                                      where WSLRNbrRouteNbr__c like: wholesalerSearchKeys])
                                       {
                                           routeNums.add(route.WSLRNbrRouteNbr__c);
                                       }
             }
         }
-        
+       
         //system.debug('routeNums: '+routeNums);
     }
-    public List<SelectOption> getRoleTypes() 
+    public List<SelectOption> getRoleTypes()
     {
         List<SelectOption> options = new List<SelectOption>();
-        for(Schema.Role_connector__c rc : roleConnectorLst) 
+        for(Schema.Role_connector__c rc : roleConnectorLst)
         {
             //BB START
             //if(currentUser.Profile.Name.left(9).toLowerCase() == 'telesales') //For TeleSales Profile : Femi july 19
@@ -249,17 +252,17 @@ public without sharing class AB_UserPortalContactExtension {
                 //if(rc.Profile_Name__c.startsWithIgnoreCase('TeleSales')) //BB
                 {
                     options.add(new SelectOption(rc.Role_Name__c,rc.Role_Name__c));
-                }  
+                } 
             }
-            else if(userType == 'IND') 
-            {   
+            else if(userType == 'IND')
+            {  
                 if(rc.Profile_Name__c.containsIgnoreCase('IND')) //BB
                 //if(rc.Profile_Name__c.startsWithIgnoreCase('IND')) //BB
                 {
                     options.add(new SelectOption(rc.Role_Name__c,rc.Role_Name__c));
-                }              
+                }             
             }
-            else if(userType == 'WOD') 
+            else if(userType == 'WOD')
             {
                 if(rc.Profile_Name__c.containsIgnoreCase('WOD')) //BB
                 //if(rc.Profile_Name__c.startsWithIgnoreCase('WOD')) //BB
@@ -279,44 +282,44 @@ public without sharing class AB_UserPortalContactExtension {
         }
         return options;
     }
-    public List<SelectOption> getSubRouteNums() 
+    public List<SelectOption> getSubRouteNums()
     {
         List<SelectOption> options = new List<SelectOption>();
         options.add(new SelectOption('','--None--'));
-        if(routeNums != null) 
+        if(routeNums != null)
         {
-            for(String str : routeNums) 
+            for(String str : routeNums)
             {
                 options.add(new SelectOption(str,str));
             }
         }
         return options;
     }
-    public List<SelectOption> getRouteOptions() 
-    { 
-        init();      
+    public List<SelectOption> getRouteOptions()
+    {
+        init();     
         return options;
     }
-    public PageReference save() 
+    public PageReference save()
     {
         PageReference pr;
         //RA 11/20/2018 - Update due to code overwrite issues
         //if(usr.Remote_Survey_Vendor_Enabled__c && !usr.isActive) {
-        if(usr.gsc_mc__Sync_to_GoSpotCheck__c && !usr.isActive) 
+        if(usr.gsc_mc__Sync_to_GoSpotCheck__c && !usr.isActive)
         {
             ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.Error,label.GoSpotCheck_Access_Validation_Error));
             userErrorMessage = label.GoSpotCheck_Access_Validation_Error;
         }
-        else 
+        else
         {
             pr = Page.AB_UserPortalContact;
-            if(usr.id == null && usr.isActive) 
+            if(usr.id == null && usr.isActive)
             {
                 Database.DMLOptions dmlo = new Database.DMLOptions();
                 dmlo.EmailHeader.triggerUserEmail = true;
                 usr.setOptions(dmlo);
-            }           
-            
+            }          
+           
             usr.UserRoleId = selRoleId;
             if(roleNameRcMap.containsKey(selRolePickVal))
                 usr.ProfileId = roleNameRcMap.get(selRolePickVal).Profile_ID__c;
@@ -324,18 +327,18 @@ public without sharing class AB_UserPortalContactExtension {
             //system.debug('***title: '+roleNameTitleMap.get(selRolePickVal));
             usr.Title = selRolePickVal;
             Role_connector__c roleConnect = new Role_connector__c();
-            if(userType == 'IND') 
-            {   
+            if(userType == 'IND')
+            {  
                 usr.User_Type__c = 'External User';
             }
             else
             //else if(userType == 'WOD') //BB
             {
                 usr.User_Type__c = 'A-B Employees';
-                //Femi - AB Permission Set/title - STARTS  
+                //Femi - AB Permission Set/title - STARTS 
                 //Femi: Below logic is to assing title for merchantiser or dispatcher by getting from the role connector records              
                 if(roleNameRcMap.containsKey(selRolePickVal)) roleConnect = roleNameRcMap.get(selRolePickVal);
-                if(roleConnect.Role_Name__c == 'Merchandiser' || roleConnect.Role_Name__c == 'Dispatcher') 
+                if(roleConnect.Role_Name__c == 'Merchandiser' || roleConnect.Role_Name__c == 'Dispatcher')
                 {
                     usr.Title = roleConnect.Title__c;
                 }
@@ -345,27 +348,27 @@ public without sharing class AB_UserPortalContactExtension {
                 if(roleConnect.Role_Name__c == 'Dispatcher')  // checking only for dispatcher
                 {
                     String keyLike = '%'+wholesalerKey;
-                    usersLst = [SELECT id, UserRole.Name 
-                                    FROM User 
-                                    WHERE ProfileId =: roleNameRcMap.get(selRolePickVal).Profile_ID__c 
-                                    AND isActive = true 
+                    usersLst = [SELECT id, UserRole.Name
+                                    FROM User
+                                    WHERE ProfileId =: roleNameRcMap.get(selRolePickVal).Profile_ID__c
+                                    AND isActive = true
                                     AND UserRole.Name LIKE: keyLike];
                 }
                 //Femi: below logic is to show the error for if there is more then one active dispatcher per whole saler.
-                if(usersLst != null && usersLst.size() > 0) 
+                if(usersLst != null && usersLst.size() > 0)
                 {
                     ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.Error,'You can only have 1 '+roleConnect.Role_Name__c+' per wholesaler number'));
                     userErrorMessage = 'You can only have 1 '+roleConnect.Role_Name__c+' per wholesaler number';
                     return null;
-                }                
+                }               
                 //Femi - AB Permission Set - ENDS
             }
-            if(currentUser.Profile.Name.left(9).toLowerCase() == 'telesales') 
+            if(currentUser.Profile.Name.left(9).toLowerCase() == 'telesales')
             {
-                List<CallCenter> callCenterLst = [SELECT id, name 
-                                                     FROM Callcenter 
+                List<CallCenter> callCenterLst = [SELECT id, name
+                                                     FROM Callcenter
                                                      WHERE Name = 'inContact Call Center'];
-                if(callCenterLst != null && callCenterLst.size() > 0) 
+                if(callCenterLst != null && callCenterLst.size() > 0)
                 {
                     usr.CallCenterId = callCenterLst[0].id;
                 }
@@ -375,25 +378,28 @@ public without sharing class AB_UserPortalContactExtension {
             usr.WSLRNbrRouteNbr__c = selRouteNum;
             if(String.isNotBlank(selRouteNum))
                 usr.RouteKey__c = selRouteNum.substring(wholesalerKey.length(),selRouteNum.length());
-            List<User> users = new List<User>();
+                system.debug('**usr before calling prefillUserFields:'+usr);
+                List<User> users = new List<User>();
             users = AB_UserPortalUserContrl_Handler.prefillUserFields(new List<User>{usr},userType);
-            List<User> lstUsersToDelete = new List<User>();            
-            try 
+            system.debug('**users after calling prefillUserFields:'+users);
+            List<User> lstUsersToDelete = new List<User>();           
+            try
             {
-                if(usr.id != UserInfo.getUserId()) 
+                if(usr.id != UserInfo.getUserId())
                 {
                     system.debug('User is not editing themselves');
+                    system.debug('users :'+users);
                     //Femi - AB Permission Set - STARTS
                     //Femi - the below logic is to assing the active users to the permission sets configured in Role Connect object
-                    Database.upsertResult[] upRslt = Database.upsert(users); 
+                    Database.upsertResult[] upRslt = Database.upsert(users);
                     List<PermissionSetAssignment> psaLst = new List<PermissionSetAssignment>();
-                    for(Integer i=0;i<upRslt.size();i++) 
+                    for(Integer i=0;i<upRslt.size();i++)
                     {
                         if(upRslt[i].isSuccess()) // if the user is inserted successfully, i am assigning to permissionset
-                        { 
+                        {
                             system.debug('User was upserted successfully'); //BB
                             if(usr.isActive) newUserId = upRslt[i].getId(); //Femi: Collect Created/Selected user id to create Service Resource
-                            if(!usr.isActive) 
+                            if(!usr.isActive)
                             {
                                 System.debug('User is not active'); //BB
                                 system.debug('@@== New User Id: '+upRslt[i].getId());
@@ -405,37 +411,38 @@ public without sharing class AB_UserPortalContactExtension {
                                     usr.WSLRNbrRouteNbr__c = null;
                                     usr.InContact_Access__c = false;
                                     usr.LiveMessage_Access__c = false;
-                                }                                
+                                }                               
                                 lstUsersToDelete.add(usr);
                             }
                             if(roleConnect != null && (roleConnect.Role_Name__c == 'Merchandiser' || roleConnect.Role_Name__c == 'Dispatcher' || currentUser.Profile.Name.left(9).toLowerCase() == 'telesales'))
                             {
                                 system.debug('User is Merch or Telesales'); //BB
+                                system.debug('***roleconnect'+roleconnect);
                                    List<String> permissionsetIds = new List<String>();
-                                   if(String.isNotBlank(roleConnect.Permission_Sets__c)) 
+                                   if(String.isNotBlank(roleConnect.Permission_Sets__c))
                                    {
                                        system.debug('User has permission sets to apply');
                                        if(userType != 'telesales') //BB
                                        //if(currentUser.Profile.Name.left(9).toLowerCase() != 'telesales') //BB
                                        {
                                            system.debug('User is not a Telesales user');
-                                           permissionsetIds.addAll(roleConnect.Permission_Sets__c.split(';'));     
-                                       }           
-                                       else 
+                                           permissionsetIds.addAll(roleConnect.Permission_Sets__c.split(';'));    
+                                       }          
+                                       else
                                        {
                                            system.debug('User is a Telesales user');
-                                           if(usr.InContact_Access__c && String.isNotBlank(Label.InContact_Access_Permission_Sets)) 
+                                           if(usr.InContact_Access__c && String.isNotBlank(Label.InContact_Access_Permission_Sets))
                                            {
                                                permissionsetIds.addAll(Label.InContact_Access_Permission_Sets.split(';'));
                                            }
-                                           if(usr.LiveMessage_Access__c && String.isNotBlank(Label.LiveMessage_Access_Permission_Sets)) 
+                                           if(usr.LiveMessage_Access__c && String.isNotBlank(Label.LiveMessage_Access_Permission_Sets))
                                            {
                                                permissionsetIds.addAll(Label.LiveMessage_Access_Permission_Sets.split(';'));
                                            }
                                        }                                             
-                                       for(String perId : permissionsetIds) 
+                                       for(String perId : permissionsetIds)
                                        {
-                                           if(users[i].isActive) 
+                                           if(users[i].isActive)
                                            {
                                                psaLst.add(new PermissionSetAssignment(PermissionSetId = perId, AssigneeId = upRslt[i].getId()));
                                                system.debug('Permission sets have been added to the list for this active user');
@@ -445,49 +452,54 @@ public without sharing class AB_UserPortalContactExtension {
                                }
                         }
                     }
-                    if(psaLst != null && psaLst.size() > 0) 
+                    if(psaLst != null && psaLst.size() > 0)
                     {
                         insert psaLst;
-                        system.debug('Permission Sets have been applied');                        
+                        system.debug('Permission Sets have been applied');                       
                     }
                     //Femi - July19 - To remove users from the Permission Set - STARTS
                     //Note: Remove the users from all the permission sets.
                     if(!usr.isActive) //BB
                     {
                         system.debug('user is not active, start the process of removing permission sets'); //BB
-                        List<PermissionSetAssignment> pSetAssignmentsLst = [SELECT Id 
-                                                                                FROM PermissionSetAssignment 
-                                                                                WHERE AssigneeId in : lstUsersToDelete 
-                                                                                AND PermissionSetId IN (SELECT Id 
-                                                                                                            FROM PermissionSet 
+                        List<PermissionSetAssignment> pSetAssignmentsLst = [SELECT Id
+                                                                                FROM PermissionSetAssignment
+                                                                                WHERE AssigneeId in : lstUsersToDelete
+                                                                                AND PermissionSetId IN (SELECT Id
+                                                                                                            FROM PermissionSet
                                                                                                             WHERE IsOwnedByProfile =false)];
-                        
-                        if(pSetAssignmentsLst != null && pSetAssignmentsLst.size() > 0) 
+                       
+                        if(pSetAssignmentsLst != null && pSetAssignmentsLst.size() > 0)
                         {
                             delete pSetAssignmentsLst;
                             system.debug('Permission Sets have been removed'); //BB
                         }
-                        List<PermissionSetLicenseAssign> pSetAssignmentsLicLst = [SELECT Id 
-                                                                                    FROM PermissionSetLicenseAssign 
+                        List<PermissionSetLicenseAssign> pSetAssignmentsLicLst = [SELECT Id
+                                                                                    FROM PermissionSetLicenseAssign
                                                                                     WHERE AssigneeId in : lstUsersToDelete];
-                        
-                        if(pSetAssignmentsLicLst != null && pSetAssignmentsLicLst.size() > 0) 
+                       
+                        if(pSetAssignmentsLicLst != null && pSetAssignmentsLicLst.size() > 0)
                         {
                             delete pSetAssignmentsLicLst;
                             system.debug('Permission Set Licenses have been removed');// BB
                         }
                     //Femi - July19 - To remove users from the Permission Set - ENDS
                     //Femi - AB Permission Set - ENDS
-                    pr = Page.AB_UserPortalHome;
+                        usr.PCR_Access__c = false;
+                        usr.LOLA_Access__c = false;
+                        usr.SRI_Access__c = false;
+                        update usr;                        
+                        pr = Page.AB_UserPortalHome;
+
                     }
-                    else 
+                    else
                     {
                         ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.Error,'Current logged in user record cannot be modified. Please contact your Administrator.'));
                         userErrorMessage = 'Current logged in user record cannot be modified. Please contact your Administrator.';
                     }
                 }
             }
-            catch(Exception e) 
+            catch(Exception e)
             {
                 String errMsg = e.getMessage();
                 if(errMsg.contains('The specified Federation ID already exists for this organization'))
@@ -501,7 +513,7 @@ public without sharing class AB_UserPortalContactExtension {
         //return null; //BB comment out
         //BB END
     }
-    
+   
     //08/06/2019 Femi Onakoya: As a user with an ABI_Dispatcher_FSL profile, when I create or update a user with a role of Merchandiser in the User Portal
     public PageReference createServiceResource()
     {
@@ -512,18 +524,18 @@ public without sharing class AB_UserPortalContactExtension {
             {
                 system.debug('CSR: The user has an ID'); //BB
                 //Query the current created/selected user
-                User newUser = [SELECT Id, Name, Wholesaler_Number__c, ProfileId, IsActive 
-                                    FROM User 
+                User newUser = [SELECT Id, Name, Wholesaler_Number__c, ProfileId, IsActive
+                                    FROM User
                                     WHERE Id =: newUserId];
                 system.debug('CSR: newUser name ='+newUser.Name); //BB
                 String profileId = String.valueOf(newUser.ProfileId);
-                
+               
                 //Check if the Profile is Merchandiser and Active
                 if(userType == 'FSL' && newUser.IsActive) //BB
                 //if(profileId.subString(0,15) == Label.ABI_Merchandiser_FSL_ProfileId && newUser.IsActive) //BB
                 {
-                    List<Account> list_SerTerritories = new List<Account>([SELECT Service_Territory__r.Id, Service_Territory__r.Name, Service_Territory__r.OperatingHoursId, WSLR_NBR_US__c 
-                                                                                FROM Account 
+                    List<Account> list_SerTerritories = new List<Account>([SELECT Service_Territory__r.Id, Service_Territory__r.Name, Service_Territory__r.OperatingHoursId, WSLR_NBR_US__c
+                                                                                FROM Account
                                                                                 WHERE WSLR_NBR_US__c = : newUser.Wholesaler_Number__c
                                                                                 ORDER BY LastModifiedDate DESC]);
                     String servTerrId;
@@ -533,15 +545,15 @@ public without sharing class AB_UserPortalContactExtension {
                         system.debug('Service territory for wholesaler found');
                         servTerrId = list_SerTerritories[0].Service_Territory__r.Id;
                         servTerrName = list_SerTerritories[0].Service_Territory__r.Name;
-                    }                           
+                    }                          
                     system.debug('CSR: user is active and is a merchandiser'); //BB
                     //If Yes, query for existing ServiceResource if any
-                    List<ServiceResource> listSReq = new List<ServiceResource>([SELECT Id,IsActive 
-                                                                                    FROM ServiceResource 
+                    List<ServiceResource> listSReq = new List<ServiceResource>([SELECT Id,IsActive
+                                                                                    FROM ServiceResource
                                                                                     WHERE RelatedRecordId =: newUser.Id]);
                     //system.debug('CSR: Service Resource ID & Status '+listSReq[0].Id + listSReq[0].IsActive);
                     //If no existing Service Resource create new set of records
-                    if(listSReq.isEmpty()) 
+                    if(listSReq.isEmpty())
                     {
                         system.debug('CSRNew: No Existing Service Resource'); //BB
                         //Creating new Service Resource
@@ -549,12 +561,13 @@ public without sharing class AB_UserPortalContactExtension {
                         sReq.Name = newUser.Name;
                         sReq.IsActive = true;
                         sReq.TMS__c = servTerrName; //BB
+                        sReq.OwnerId = newUser.Id;//BB
                         //sReq.ResourceType = 'Technician';
                         if(!Test.isRunningTest()) sReq.IsOptimizationCapable = true;
                         sReq.RelatedRecordId = newUser.Id;
                         Insert sReq;
                         system.debug('CSRNew: Service Resource Created' + sReq.Id);
-                        
+                       
                         //Creating Service Skill
                         system.debug('CSRNew: Creating Service Resource Skill');
                         ServiceResourceSkill srSkill = new ServiceResourceSkill();
@@ -565,7 +578,7 @@ public without sharing class AB_UserPortalContactExtension {
                         //srSkill.SkillLevel = 0;
                         Insert srSkill;
                         system.debug('CSRNew: Service Resource Skill ID' + srSkill.Id); //BB
-                        
+                       
                         if(!String.IsBlank(newUser.Wholesaler_Number__c))//Check for Wholesaler number of the user created/selected
                         {
                             system.debug('CSRNew: User has a wholesaler number'); //BB
@@ -583,7 +596,7 @@ public without sharing class AB_UserPortalContactExtension {
                                 //stm.EffectiveEndDate = null;
                                 Insert stm;
                                 system.debug('CSRNew: Created Service Territory Member'+stm.Id); //BB
-
+ 
                                 //BB START
                                 //Creating User Territory
                                 system.debug('CSRNew: Start creating User Territory');
@@ -605,7 +618,7 @@ public without sharing class AB_UserPortalContactExtension {
                     }
                     else //If Service Resource Exist
                     {
-                        
+                       
                         system.debug('CSROld: Service Resource already exists');
                         //BB if(!listSReq[0].IsActive) //Check if it's Inactive and make it active
                         //BB {
@@ -616,14 +629,14 @@ public without sharing class AB_UserPortalContactExtension {
                             Update listSReq[0];
                             //system.debug('CSROld: Service Resource should now be active'+listSReq[0].Id);
                         //BB }
-                        
+                       
                         //Query and check if Service Resource Skill already exist
-                        List<ServiceResourceSkill> list_Skills = new List<ServiceResourceSkill>([SELECT Id 
-                                                                                                    FROM ServiceResourceSkill 
+                        List<ServiceResourceSkill> list_Skills = new List<ServiceResourceSkill>([SELECT Id
+                                                                                                    FROM ServiceResourceSkill
                                                                                                     WHERE ServiceResourceId =: listSReq[0].Id]);
                         system.debug('CSROld: Checking for service resource skill');
-
-                        //If there is no existing Service Resource Skill, create new 
+ 
+                        //If there is no existing Service Resource Skill, create new
                         if(list_Skills == null || list_Skills.isEmpty())
                         {
                             system.debug('CSROld: No Existing Service Resource Skill');
@@ -637,17 +650,17 @@ public without sharing class AB_UserPortalContactExtension {
                             Insert srSkill1;
                             system.debug('CSROld: New Service Resource Skill Created'+srSkill1.Id);
                         }
-                        else 
+                        else
                         {
                             system.debug('CSROld: Service Resource Skill Exists' + list_Skills[0].Id);
                         }
-                        
+                       
                         //Query and check if already ServiceTerritoryMember exist
-                        List<ServiceTerritoryMember> list_ServTerr = new List<ServiceTerritoryMember>([SELECT Id 
-                                                                                                        FROM ServiceTerritoryMember 
+                        List<ServiceTerritoryMember> list_ServTerr = new List<ServiceTerritoryMember>([SELECT Id
+                                                                                                        FROM ServiceTerritoryMember
                                                                                                         WHERE ServiceResourceId =: listSReq[0].Id]);
-                        
-                        //If there is no existing Service Territory Member, create new 
+                       
+                        //If there is no existing Service Territory Member, create new
                         if(list_ServTerr == null || list_ServTerr.isEmpty())
                         {
                             system.debug('CSROld: Service Territory Member does not exist');
@@ -670,7 +683,7 @@ public without sharing class AB_UserPortalContactExtension {
                                     ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.CONFIRM,'Service Territory, Skill & User Territory updated successfully.'));
                                     String errMsg = e.getMessage();
                                     if(errMsg.contains(' CANNOT_INSERT_UPDATE_ACTIVATE_ENTITY, FSL.TR020_ResourceTerritories_BeforeInsert'))
-                                    errMsg = label.UP_STM;
+                                    errMsg = label.UP_STM; //BB - Error input to explain why STM can't be provided to existing SR
                                     ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.Error,errMsg));
                                     userErrorMessage = errMsg;
                                     return null;
@@ -684,11 +697,11 @@ public without sharing class AB_UserPortalContactExtension {
                                 return null;
                             }
                         }
-
-	                    //BB START
+ 
+                        //BB START
                         //Query and check if User Territory exists
-                        List<FSL__User_Territory__c> list_UserTerr = new List<FSL__User_Territory__c>([SELECT Id,FSL__ServiceTerritory__c 
-                                                                                                        FROM FSL__User_Territory__c 
+                        List<FSL__User_Territory__c> list_UserTerr = new List<FSL__User_Territory__c>([SELECT Id,FSL__ServiceTerritory__c
+                                                                                                        FROM FSL__User_Territory__c
                                                                                                         WHERE FSL__User__c =: newUser.Id]);
                         //If there is an existing User Territory and if the territory is different than the existing, start logic to delete it
                         if(list_UserTerr != null && list_UserTerr.size() > 0 && (List_UserTerr[0].FSL__ServiceTerritory__c != servTerrId))
@@ -698,8 +711,8 @@ public without sharing class AB_UserPortalContactExtension {
                                 system.debug('Existing Service Resource: Old user territory deleted');
                             }
                         //If there is no existing User Territory, start logic to create new
-                        List<FSL__User_Territory__c> list_UserTerr1 = new List<FSL__User_Territory__c>([SELECT Id 
-                                                                                                        FROM FSL__User_Territory__c 
+                        List<FSL__User_Territory__c> list_UserTerr1 = new List<FSL__User_Territory__c>([SELECT Id
+                                                                                                        FROM FSL__User_Territory__c
                                                                                                         WHERE FSL__User__c =: newUser.Id]);
                         //BRIANNA Added a bit to say if the user is active create a new user territory
                         if(usr.IsActive && (list_UserTerr1 == null || list_UserTerr1.isEmpty()))
@@ -711,7 +724,6 @@ public without sharing class AB_UserPortalContactExtension {
                                 system.debug('Existing Service Resource: Created user territory');
                             }
                         //BRIANNA END
-                        
                     }
                 }
                 return Page.AB_UserPortalHome;
@@ -734,7 +746,7 @@ public without sharing class AB_UserPortalContactExtension {
     //End of Service Resource Creation
     public List<SelectOption> getRoles() {
         List<SelectOption> options = new List<SelectOption>();
-        if(String.isNotBlank(currentUserRoleId)) {            
+        if(String.isNotBlank(currentUserRoleId)) {           
             options.add(
                 new SelectOption(currentUserRoleId, currentUserRoleName.Right(currentUserRoleName.Length()-6))
             );
@@ -747,23 +759,23 @@ public without sharing class AB_UserPortalContactExtension {
         return options;
     }
     static Set<ID> getAllSubRoleIds(Set<ID> roleIds) {
-        
+       
         Set<ID> currentRoleIds = new Set<ID>();
-        
+       
         // get all of the roles underneath the passed roles
-        for(UserRole userRole :[SELECT Id, Name 
-                                FROM UserRole 
-                                WHERE ParentRoleId IN :roleIds 
+        for(UserRole userRole :[SELECT Id, Name
+                                FROM UserRole
+                                WHERE ParentRoleId IN :roleIds
                                 AND ParentRoleID != null]) {
             String roleName = String.valueOf(userRole.Name);
-            
+           
             if(roleName.indexOf(Label.Owner)>0){
                 //do not display the "Owner" dummy role
             } else {
                 currentRoleIds.add(userRole.Id);
             }
         }
-        
+       
         // go fetch some more roles!
         if(!currentRoleIds.isEmpty()) {
             currentRoleIds.addAll(getAllSubRoleIds(currentRoleIds));
@@ -773,8 +785,8 @@ public without sharing class AB_UserPortalContactExtension {
     public pageReference doRemoveUser(){
         PageReference pageRef;
         usr.isActive = false;
-        List<User> users = [SELECT id, ManagerId 
-                            FROM User 
+        List<User> users = [SELECT id, ManagerId
+                            FROM User
                             WHERE ManagerId =: usr.id];
         if(users != null && users.size() > 0)
             ApexPages.addMessage(new ApexPages.Message(ApexPages.severity.Error,label.UserManagerReferenceError));
@@ -788,26 +800,26 @@ public without sharing class AB_UserPortalContactExtension {
         PageReference pageRef = new PageReference('/apex/AB_UserPortalHome');
         return pageRef;
     }
-    
+   
     public Boolean getUpdateLolaAccess(){
-        List<Wholesaler_Lola_Access__c> ws = [SELECT Wholesaler_Number__c 
-                                                FROM Wholesaler_Lola_Access__c 
+        List<Wholesaler_Lola_Access__c> ws = [SELECT Wholesaler_Number__c
+                                                FROM Wholesaler_Lola_Access__c
                                                 WHERE Wholesaler_Number__c = :getWholsalerNumber() limit 1];
         Boolean ret = false;
         if (!ws.isEmpty()){
             ret = true;
         }
         return ret;
-    }   
+    }  
     //Femi - July19 - STARTS
     public Boolean getHasBTCAccess() {
         //Wholesaler_App_Config__c
         Boolean isTrue = false;
         String whslrNum = getWholsalerNumber();
         if(String.isNotBlank(whslrNum)) {
-            List<Wholesaler_App_Config__c> appConfigs = new List<Wholesaler_App_Config__c>([SELECT Name 
-                                                                                            FROM Wholesaler_App_Config__c 
-                                                                                            WHERE Name =: whslrNum 
+            List<Wholesaler_App_Config__c> appConfigs = new List<Wholesaler_App_Config__c>([SELECT Name
+                                                                                            FROM Wholesaler_App_Config__c
+                                                                                            WHERE Name =: whslrNum
                                                                                             AND Application_Name__c = 'BigTinCan']
             );
             if(appConfigs.size() > 0) {
@@ -818,9 +830,9 @@ public without sharing class AB_UserPortalContactExtension {
     }
     //Femi - July19 - ENDS
     public String getWholsalerNumber(){
-        User sn = [SELECT Wholesaler_Number__c 
-                    FROM user 
+        User sn = [SELECT Wholesaler_Number__c
+                    FROM user
                     WHERE id =  :UserInfo.getUserId()];
         return sn.Wholesaler_Number__c;
-    }    
+    }   
 }

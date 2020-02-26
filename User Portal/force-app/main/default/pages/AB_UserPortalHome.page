@@ -58,10 +58,7 @@
                 <apex:pageBlockTable value="{!MyUsersWrapper}" var="c" id="table">
                     <apex:column >
                         <apex:facet name="header">
-                            
                             <input type="checkbox" onClick="toggle(this)" />
-                            
-
                         </apex:facet>
                         <apex:inputCheckbox value="{!c.selected}" styleClass="cbSelect"/>
                     </apex:column>
@@ -69,7 +66,7 @@
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
                            <apex:param name="SortField" value="Name" assignTo="{!SortField}" />
-                           <apex:outputText value="User Name {!IF(SortField=='Name',IF(SortDirection='asc','▲','▼'),'')}" />
+                           <apex:outputText value="Name {!IF(SortField=='Name',IF(SortDirection='asc','▲','▼'),'')}" />
                         </apex:commandLink>
                      </apex:facet>
                         <apex:outputLink value="/apex/AB_UserPortalContact?id={!c.usr.Id}&pn={!pageOffset}&sf={!sortField}&sd={!sortDirection}">{!c.usr.Name}</apex:outputLink>
@@ -78,7 +75,7 @@
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
                            <apex:param name="SortField" value="USERNAME" assignTo="{!SortField}" />
-                           <apex:outputText value="Login UserName {!IF(SortField=='USERNAME',IF(SortDirection='asc','▲','▼'),'')}" />
+                           <apex:outputText value="UserName {!IF(SortField=='USERNAME',IF(SortDirection='asc','▲','▼'),'')}" />
                         </apex:commandLink>
                     </apex:facet>
                     </apex:column>
@@ -106,7 +103,7 @@
                             <!--</apex:commandLink>-->
                         </apex:facet>
                     </apex:column>
-                    <apex:column value="{!c.usr.isActive}">
+                    <apex:column headerValue="Active" value="{!c.usr.isActive}">
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
                            <apex:param name="SortField" value="isActive" assignTo="{!SortField}" />
@@ -114,7 +111,7 @@
                         </apex:commandLink>
                      </apex:facet>
                     </apex:column>   
-                    <apex:column value="{!c.usr.gsc_mc__Sync_to_GoSpotCheck__c}" rendered="{!IF(userType=='IND'|| userType =='WOD',true,false)}">
+                    <apex:column headerValue="GoSpotCheck Access" value="{!c.usr.gsc_mc__Sync_to_GoSpotCheck__c}" rendered="{!IF(userType=='IND'|| userType =='WOD',true,false)}">
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
                            <apex:param name="SortField" value="gsc_mc__Sync_to_GoSpotCheck__c" assignTo="{!SortField}" />
@@ -123,7 +120,7 @@
                      </apex:facet>
                     </apex:column>  
                     <!-- LOLA ACCESS-->
-                    <apex:column value="{!c.usr.LOLA_Access__c}" rendered="{!updateLolaAccess}">
+                    <apex:column headerValue="LOLA Access" value="{!c.usr.LOLA_Access__c}" rendered="{!updateLolaAccess}">
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
                            <apex:param name="SortField" value="LOLA_Access__c" assignTo="{!SortField}" />
@@ -131,8 +128,8 @@
                         </apex:commandLink>
                      </apex:facet>
                     </apex:column>                      
-                    <!-- FIN LOLA ACCESS-->
-                    <apex:column value="{!c.usr.SRI_Access__c}" rendered="{!userType=='IND'}">
+                    <!-- END LOLA ACCESS-->
+                    <apex:column headerValue="SRI Access" value="{!c.usr.SRI_Access__c}" rendered="{!userType=='IND'}">
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
                            <apex:param name="SortField" value="SRI_Access__c" assignTo="{!SortField}" />
@@ -140,39 +137,14 @@
                         </apex:commandLink>
                      </apex:facet>
                     </apex:column>   
-                    <apex:column value="{!c.usr.WSLRNbrRouteNbr__c}" rendered="{!IF(userType=='IND' || userType=='Telesales' || userType=='WOD',true,false)}">
+                    <apex:column headerValue="PCR Access" value="{!c.usr.PCR_Access__c}" rendered="{!IF(userType=='IND'|| userType =='WOD',true,false)}">
                         <apex:facet name="header">
                         <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
-                           <apex:param name="SortField" value="WSLRNbrRouteNbr__c" assignTo="{!SortField}" />
-                           <apex:outputText value="{!'Wslr Nbr + Rte Nbr'} {!IF(SortField=='WSLRNbrRouteNbr__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                           <apex:param name="SortField" value="SRI_Access__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'PCR'} {!IF(SortField=='PCR_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
                         </apex:commandLink>
                      </apex:facet>
-                    </apex:column>  
-                    <apex:column value="{!c.usr.LastLoginDate}">
-                        <apex:facet name="header">
-                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
-                           <apex:param name="SortField" value="LastLoginDate" assignTo="{!SortField}" />
-                           <apex:outputText value="{!$ObjectType.User.Fields.LastLoginDate.label+''} {!IF(SortField=='LastLoginDate',IF(SortDirection='asc','▲','▼'),'')}" />
-                        </apex:commandLink>
-                     </apex:facet>
-                    </apex:column>  
-                    <apex:column value="{!c.usr.Employee_Number_US__c}">
-                        <apex:facet name="header">
-                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
-                           <apex:param name="SortField" value="Employee_Number_US__c" assignTo="{!SortField}" />
-                           <apex:outputText value="{!'Mobility Employee ID'} {!IF(SortField=='Employee_Number_US__c',IF(SortDirection='asc','▲','▼'),'')}" />
-                        </apex:commandLink>
-                     </apex:facet>
-                    </apex:column>  
-                    <!-- Femi: July19 - Addded below line -->    
-                    <apex:column headerValue="BTC Access" value="{!c.usr.BigTinCan_Access__c}" rendered="{!hasBTCAccess}">
-                        <apex:facet name="header">
-                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
-                           <apex:param name="SortField" value="BigTinCan_Access__c" assignTo="{!SortField}" />
-                           <apex:outputText value="{!'BTC Access'} {!IF(SortField=='BigTinCan_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
-                        </apex:commandLink>
-                     </apex:facet>
-                    </apex:column>
+                    </apex:column>   
                     <apex:column headerValue="InContact Access" value="{!c.usr.InContact_Access__c}" rendered="{!userType == 'Telesales'}">
                         <apex:facet name="header">
                             <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
@@ -189,6 +161,39 @@
                             </apex:commandLink>
                         </apex:facet>
                     </apex:column> 
+                    <apex:column headerValue="Route" value="{!c.usr.WSLRNbrRouteNbr__c}" rendered="{!IF(userType=='IND' || userType=='Telesales' || userType=='WOD',true,false)}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="WSLRNbrRouteNbr__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'Route'} {!IF(SortField=='WSLRNbrRouteNbr__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>  
+                    <apex:column headerValue="Last Login Date" value="{!c.usr.LastLoginDate}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="LastLoginDate" assignTo="{!SortField}" />
+                           <apex:outputText value="{!$ObjectType.User.Fields.LastLoginDate.label+''} {!IF(SortField=='LastLoginDate',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>  
+                    <apex:column headerValue="Mobility Employee ID" value="{!c.usr.Employee_Number_US__c}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="Employee_Number_US__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'Mobility Employee ID'} {!IF(SortField=='Employee_Number_US__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>  
+                    <!-- Femi: July19 - Addded below line -->    
+                    <apex:column headerValue="BTC Access" value="{!c.usr.BigTinCan_Access__c}" rendered="{!hasBTCAccess}">
+                        <apex:facet name="header">
+                        <apex:commandLink action="{!SortToggle}" rerender="table" status="TableUpdateStatus">
+                           <apex:param name="SortField" value="BigTinCan_Access__c" assignTo="{!SortField}" />
+                           <apex:outputText value="{!'BTC Access'} {!IF(SortField=='BigTinCan_Access__c',IF(SortDirection='asc','▲','▼'),'')}" />
+                        </apex:commandLink>
+                     </apex:facet>
+                    </apex:column>
                     <apex:facet name="footer">Showing Page # {!pageNumber} of {!totalPages}</apex:facet>
                     <apex:facet name="header">
                     </apex:facet>

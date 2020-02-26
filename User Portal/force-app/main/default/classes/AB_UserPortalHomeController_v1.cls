@@ -68,7 +68,7 @@ public class AB_UserPortalHomeController_v1
             {
                 userType = 'FSL';
             }
-
+            system.debug('UserType = ' +userType);
             /*List<String> strs =  myRoleName.split('-');  
             if(strs != null &&  strs.size() == 3) { 
                 whslrNum = strs[2].trim();    
@@ -234,25 +234,18 @@ public class AB_UserPortalHomeController_v1
                 queryUsers +=  ' AND Wholesaler_Number__c IN ' + wslrs;
             }
         }
-      if(String.isNotBlank(nameVal)) 
-      {
-          String lkStr = '\'%'+nameVal+'%\'';
-          queryUsers +=  ' AND Name like '+lkStr;
-      }
-      //queryUsers +=  'RecordTypeId = \'' + nazUsrRecTypeId + '\' ';
-      total_size = Database.query(queryUsers).size();
-      activeUsers_size = Database.query(queryUsers  + ' AND isActive = true').size();
-      
-      if(userType != 'FSL')
-      {
-                queryUsers +=  'ORDER BY ' + sortField + ' ' + sortDirection + ' ';
-
-      }
-      queryUsers +=  'LIMIT ' + list_size + ' ';
-      queryUsers +=  'OFFSET ' + i;
+    if(String.isNotBlank(nameVal)) 
+    {
+        String lkStr = '\'%'+nameVal+'%\'';
+        queryUsers +=  ' AND Name like '+lkStr;
     }
-
-
+    //queryUsers +=  'RecordTypeId = \'' + nazUsrRecTypeId + '\' ';
+    total_size = Database.query(queryUsers).size();
+    activeUsers_size = Database.query(queryUsers  + ' AND isActive = true').size();
+    queryUsers +=  'ORDER BY ' + sortField + ' ' + sortDirection + ' ';
+    queryUsers +=  'LIMIT ' + list_size + ' ';
+    queryUsers +=  'OFFSET ' + i;
+}
 
      public List<userPortalWrapper> getMyUsersWrapper() 
     {
@@ -556,10 +549,10 @@ public class AB_UserPortalHomeController_v1
         return userTerrit;
     }*/
 
-    public void sortByUserTerritory()
+    /*public void sortByUserTerritory()
     {
         List<FSL__User_Territory__c>sortUserTerritory=new List<FSL__User_Territory__c>([SELECT FSL__Territory_Name__c FROM FSL__User_Territory__c]);
         sortField = 'UserTerritory';
-    }
+    }*/
 
 }
